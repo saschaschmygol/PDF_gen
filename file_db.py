@@ -88,11 +88,10 @@ def date_person(id):
     gender = "" # переменные под пол и возраст
     date = {'name': None, 'date': []}
 
-    # обновляем словь сферы работы json
+    # обновляем словарь сферы работы json
     cursor = conn.cursor()
     cursor.execute(f"SELECT S.name, S.vac_1, S.vac_2, S.vac_3, S.vac_4, S.vac_5, S.vac_6, S.vac_7, S.vac_8, S.vac_9, S.vac_10, S.vac_11, S.vac_12 FROM Сфера_Работы as S")
     rows = cursor.fetchall()
-
     update_json_scope_work('data_dict.json', rows)
 
     # Получение персональных данных

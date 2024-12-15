@@ -1,3 +1,4 @@
+from reportlab.lib.enums import TA_JUSTIFY
 from reportlab.platypus import TableStyle
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib import colors
@@ -39,15 +40,15 @@ CUSTOM_PARAGRAPH_STYLE = ParagraphStyle(
     fontSize=10,
     leading=10,  # Межстрочный интервал
     textColor=colors.black,
-    alignment=4,  # Центрирование текста (0 - влево, 1 - центр, 2 - вправо, 4 - в ширину)
+    alignment=TA_JUSTIFY,  # Центрирование текста (0 - влево, 1 - центр, 2 - вправо, 4 - в ширину)
     spaceAfter=0,  # Отступ после абзаца
-    firstLineIndent=20,  # Отступ первой строки (красная строка)
-    leftIndent=cm_to_points(1),  # Отступ слева
+    firstLineIndent=30,  # Отступ первой строки (красная строка)
+    leftIndent=cm_to_points(0.5),  # Отступ слева
     rightIndent=cm_to_points(0)  # Отступ справа
 )
 
 TAB_PARAGRAPH_STYLE = ParagraphStyle(
-    'CustomStyle',
+    'TabStyle',
     fontName='Times',
     fontSize=10,
     leading=14,  # Межстрочный интервал
@@ -56,6 +57,19 @@ TAB_PARAGRAPH_STYLE = ParagraphStyle(
     spaceAfter=0,  # Отступ после абзаца
     firstLineIndent=0,  # Отступ первой строки (красная строка)
     leftIndent=cm_to_points(0),  # Отступ слева
+    rightIndent=cm_to_points(0)  # Отступ справа
+)
+
+SIGNATURE_PARAGRAPH_STYLE = ParagraphStyle(
+    'SignaturStyle',
+    fontName='Times',
+    fontSize=10,
+    leading=20,  # Межстрочный интервал
+    textColor=colors.black,
+    alignment=4,  # Центрирование текста (0 - влево, 1 - центр, 2 - вправо, 4 - в ширину)
+    spaceAfter=0,  # Отступ после абзаца
+    firstLineIndent=20,  # Отступ первой строки (красная строка)
+    leftIndent=cm_to_points(1),  # Отступ слева
     rightIndent=cm_to_points(0)  # Отступ справа
 )
 
