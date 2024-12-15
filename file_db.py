@@ -2,6 +2,19 @@ import sqlite3
 import datetime
 import json
 
+def searсh_men(id):
+    ''' Проверка наличия пациента в базе '''
+    conn = sqlite3.connect('1.db')
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT S.Имя, S.Фамилия, S.Отчество, S.Пол, S.Дата_Рождения FROM Сотрудник as S WHERE S.ID = {id};")
+    rows = cursor.fetchall()
+    pers_info = rows
+
+    if len(rows[0]) == 0:
+        return False
+    else:
+        return True
+
 def update_json_scope_work(filename, rows):
     ''' Обновление json сферы работы rows = ([], [], []) - [] строка запроса '''
 
@@ -164,6 +177,8 @@ def date_person(id):
         lastData = n[0] #последняя дата прививки
 
         while True:
+            print(f"cond {cond}  {n[1]}")
+            print(f'{loaded_dict_json["vaccination"][n[1]][cond][0]}')
             addTime = loaded_dict_json["vaccination"][n[1]][cond][0]
             newTime = add_time(lastData, addTime)
 
@@ -185,7 +200,10 @@ def date_person(id):
 
     print(date['date'])
     slist = sorted(date['date'])
+    date['date'] = slist[:]
     #sort_mounth(date['date'])
-    print( slist)
+    print(slist)
 
-date_person(1)
+    return date
+
+#date_person(1)

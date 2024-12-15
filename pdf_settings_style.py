@@ -43,7 +43,7 @@ CUSTOM_PARAGRAPH_STYLE = ParagraphStyle(
     spaceAfter=0,  # Отступ после абзаца
     firstLineIndent=20,  # Отступ первой строки (красная строка)
     leftIndent=cm_to_points(1),  # Отступ слева
-    rightIndent=cm_to_points(2)  # Отступ справа
+    rightIndent=cm_to_points(0)  # Отступ справа
 )
 
 TAB_PARAGRAPH_STYLE = ParagraphStyle(

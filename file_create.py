@@ -6,7 +6,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.units import inch
-#from file_db import data_person
+from file_db import date_person
 import json
 
 pdfmetrics.registerFont(TTFont('Times', 'timesnewromanpsmt.ttf'))
@@ -72,7 +72,8 @@ def generate_pdf(date):
     doc.build(content) # Добавляем таблицу в документ
 
 if __name__== '__main__':
-    date = {'name': 'III ii ii', 'date': [['10-31-31', 'Дифтерия']]}
+    #date = {'name': 'III ii ii', 'date': [['10-31-31', 'Дифтерия']]}
     #date = data_person(1)
     #print(date)
+    date = date_person(1)
     generate_pdf(date)

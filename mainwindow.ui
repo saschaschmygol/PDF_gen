@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1078</width>
-    <height>844</height>
+    <height>845</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,7 +43,7 @@
              <x>0</x>
              <y>0</y>
              <width>1034</width>
-             <height>704</height>
+             <height>705</height>
             </rect>
            </property>
           </widget>
@@ -70,9 +70,9 @@
             <height>30</height>
            </size>
           </property>
-          <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
+          <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0,0,0">
            <property name="spacing">
-            <number>0</number>
+            <number>10</number>
            </property>
            <property name="leftMargin">
             <number>0</number>
@@ -87,6 +87,13 @@
             <number>0</number>
            </property>
            <item>
+            <widget class="QLabel" name="nameLabel">
+             <property name="text">
+              <string>Имя</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QTextEdit" name="searchPatientTextField">
              <property name="maximumSize">
               <size>
@@ -96,6 +103,34 @@
              </property>
              <property name="placeholderText">
               <string>Введите имя пациента</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="fnameLabel">
+             <property name="text">
+              <string>Фамилия</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTextEdit" name="fnamTextField">
+             <property name="placeholderText">
+              <string>Введите фамилию пациента</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="surnameLabel">
+             <property name="text">
+              <string>Отчество</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTextEdit" name="surnameTextField">
+             <property name="placeholderText">
+              <string>Введите отчество пациента</string>
              </property>
             </widget>
            </item>
@@ -132,7 +167,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QScrollArea" name="messagesDatabase">
+         <widget class="QPushButton" name="preview_button">
+          <property name="text">
+           <string>Предпросмотр</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QScrollArea" name="scrollArea">
           <property name="widgetResizable">
            <bool>true</bool>
           </property>
@@ -142,9 +184,43 @@
              <x>0</x>
              <y>0</y>
              <width>1034</width>
-             <height>640</height>
+             <height>611</height>
             </rect>
            </property>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <widget class="QTableWidget" name="tableWidget">
+              <attribute name="horizontalHeaderDefaultSectionSize">
+               <number>300</number>
+              </attribute>
+              <row/>
+              <column>
+               <property name="text">
+                <string>Рекомендуемый срок</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Инфекционное заболевание</string>
+               </property>
+              </column>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="addLineButton">
+              <property name="text">
+               <string>Добавить строку</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="deleteLineButton">
+              <property name="text">
+               <string>Удалить строку</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </widget>
         </item>
