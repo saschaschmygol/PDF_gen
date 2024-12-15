@@ -174,54 +174,118 @@
          </widget>
         </item>
         <item>
-         <widget class="QScrollArea" name="scrollArea">
-          <property name="widgetResizable">
-           <bool>true</bool>
-          </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents_2">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>1034</width>
-             <height>611</height>
-            </rect>
+         <widget class="QWidget" name="widget_2" native="true">
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <property name="spacing">
+            <number>0</number>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_3">
-            <item>
-             <widget class="QTableWidget" name="tableWidget">
-              <attribute name="horizontalHeaderDefaultSectionSize">
-               <number>300</number>
-              </attribute>
-              <row/>
-              <column>
-               <property name="text">
-                <string>Рекомендуемый срок</string>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>Инфекционное заболевание</string>
-               </property>
-              </column>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="addLineButton">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QTableWidget" name="personInfoTable">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>100</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+             <attribute name="horizontalHeaderCascadingSectionResizes">
+              <bool>false</bool>
+             </attribute>
+             <attribute name="horizontalHeaderDefaultSectionSize">
+              <number>200</number>
+             </attribute>
+             <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+              <bool>false</bool>
+             </attribute>
+             <attribute name="horizontalHeaderStretchLastSection">
+              <bool>true</bool>
+             </attribute>
+             <attribute name="verticalHeaderHighlightSections">
+              <bool>true</bool>
+             </attribute>
+             <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+              <bool>false</bool>
+             </attribute>
+             <attribute name="verticalHeaderStretchLastSection">
+              <bool>false</bool>
+             </attribute>
+             <column>
               <property name="text">
-               <string>Добавить строку</string>
+               <string>Фамилия</string>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="deleteLineButton">
+             </column>
+             <column>
               <property name="text">
-               <string>Удалить строку</string>
+               <string>Имя</string>
               </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
+             </column>
+             <column>
+              <property name="text">
+               <string>Отчество</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Должность</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Подразделение</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTableWidget" name="tableWidget">
+             <attribute name="horizontalHeaderDefaultSectionSize">
+              <number>300</number>
+             </attribute>
+             <attribute name="horizontalHeaderStretchLastSection">
+              <bool>false</bool>
+             </attribute>
+             <row/>
+             <column>
+              <property name="text">
+               <string>Рекомендуемый срок</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Инфекционное заболевание</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="addLineButton">
+             <property name="text">
+              <string>Добавить строку</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="deleteLineButton">
+             <property name="text">
+              <string>Удалить строку</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>

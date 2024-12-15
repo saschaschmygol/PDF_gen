@@ -120,41 +120,65 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addWidget(self.preview_button)
 
-        self.scrollArea = QScrollArea(self.database)
-        self.scrollArea.setObjectName(u"scrollArea")
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollAreaWidgetContents_2 = QWidget()
-        self.scrollAreaWidgetContents_2.setObjectName(u"scrollAreaWidgetContents_2")
-        self.scrollAreaWidgetContents_2.setGeometry(QRect(0, 0, 1034, 611))
-        self.verticalLayout_3 = QVBoxLayout(self.scrollAreaWidgetContents_2)
+        self.widget_2 = QWidget(self.database)
+        self.widget_2.setObjectName(u"widget_2")
+        self.verticalLayout_3 = QVBoxLayout(self.widget_2)
+        self.verticalLayout_3.setSpacing(0)
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.tableWidget = QTableWidget(self.scrollAreaWidgetContents_2)
+        self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
+        self.personInfoTable = QTableWidget(self.widget_2)
+        if (self.personInfoTable.columnCount() < 5):
+            self.personInfoTable.setColumnCount(5)
+        __qtablewidgetitem = QTableWidgetItem()
+        self.personInfoTable.setHorizontalHeaderItem(0, __qtablewidgetitem)
+        __qtablewidgetitem1 = QTableWidgetItem()
+        self.personInfoTable.setHorizontalHeaderItem(1, __qtablewidgetitem1)
+        __qtablewidgetitem2 = QTableWidgetItem()
+        self.personInfoTable.setHorizontalHeaderItem(2, __qtablewidgetitem2)
+        __qtablewidgetitem3 = QTableWidgetItem()
+        self.personInfoTable.setHorizontalHeaderItem(3, __qtablewidgetitem3)
+        __qtablewidgetitem4 = QTableWidgetItem()
+        self.personInfoTable.setHorizontalHeaderItem(4, __qtablewidgetitem4)
+        self.personInfoTable.setObjectName(u"personInfoTable")
+        self.personInfoTable.setMaximumSize(QSize(16777215, 100))
+        self.personInfoTable.setStyleSheet(u"")
+        self.personInfoTable.horizontalHeader().setCascadingSectionResizes(False)
+        self.personInfoTable.horizontalHeader().setDefaultSectionSize(200)
+        self.personInfoTable.horizontalHeader().setProperty(u"showSortIndicator", False)
+        self.personInfoTable.horizontalHeader().setStretchLastSection(True)
+        self.personInfoTable.verticalHeader().setHighlightSections(True)
+        self.personInfoTable.verticalHeader().setProperty(u"showSortIndicator", False)
+        self.personInfoTable.verticalHeader().setStretchLastSection(False)
+
+        self.verticalLayout_3.addWidget(self.personInfoTable)
+
+        self.tableWidget = QTableWidget(self.widget_2)
         if (self.tableWidget.columnCount() < 2):
             self.tableWidget.setColumnCount(2)
-        __qtablewidgetitem = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(0, __qtablewidgetitem)
-        __qtablewidgetitem1 = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(1, __qtablewidgetitem1)
+        __qtablewidgetitem5 = QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(0, __qtablewidgetitem5)
+        __qtablewidgetitem6 = QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(1, __qtablewidgetitem6)
         if (self.tableWidget.rowCount() < 1):
             self.tableWidget.setRowCount(1)
         self.tableWidget.setObjectName(u"tableWidget")
         self.tableWidget.horizontalHeader().setDefaultSectionSize(300)
+        self.tableWidget.horizontalHeader().setStretchLastSection(False)
 
         self.verticalLayout_3.addWidget(self.tableWidget)
 
-        self.addLineButton = QPushButton(self.scrollAreaWidgetContents_2)
+        self.addLineButton = QPushButton(self.widget_2)
         self.addLineButton.setObjectName(u"addLineButton")
 
         self.verticalLayout_3.addWidget(self.addLineButton)
 
-        self.deleteLineButton = QPushButton(self.scrollAreaWidgetContents_2)
+        self.deleteLineButton = QPushButton(self.widget_2)
         self.deleteLineButton.setObjectName(u"deleteLineButton")
 
         self.verticalLayout_3.addWidget(self.deleteLineButton)
 
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents_2)
 
-        self.verticalLayout_2.addWidget(self.scrollArea)
+        self.verticalLayout_2.addWidget(self.widget_2)
 
         self.tabWidget.addTab(self.database, "")
 
@@ -190,10 +214,20 @@ class Ui_MainWindow(object):
         self.searchPatientButton.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0439\u0442\u0438 \u043f\u0430\u0446\u0438\u0435\u043d\u0442\u0430", None))
         self.generatePDF.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0433\u0435\u043d\u0435\u0440\u0438\u0440\u043e\u0432\u0430\u0442\u044c PDF", None))
         self.preview_button.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u0435\u0434\u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440", None))
-        ___qtablewidgetitem = self.tableWidget.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0443\u0435\u043c\u044b\u0439 \u0441\u0440\u043e\u043a", None));
-        ___qtablewidgetitem1 = self.tableWidget.horizontalHeaderItem(1)
-        ___qtablewidgetitem1.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043d\u0444\u0435\u043a\u0446\u0438\u043e\u043d\u043d\u043e\u0435 \u0437\u0430\u0431\u043e\u043b\u0435\u0432\u0430\u043d\u0438\u0435", None));
+        ___qtablewidgetitem = self.personInfoTable.horizontalHeaderItem(0)
+        ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"\u0424\u0430\u043c\u0438\u043b\u0438\u044f", None));
+        ___qtablewidgetitem1 = self.personInfoTable.horizontalHeaderItem(1)
+        ___qtablewidgetitem1.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043c\u044f", None));
+        ___qtablewidgetitem2 = self.personInfoTable.horizontalHeaderItem(2)
+        ___qtablewidgetitem2.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0442\u0447\u0435\u0441\u0442\u0432\u043e", None));
+        ___qtablewidgetitem3 = self.personInfoTable.horizontalHeaderItem(3)
+        ___qtablewidgetitem3.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u043b\u0436\u043d\u043e\u0441\u0442\u044c", None));
+        ___qtablewidgetitem4 = self.personInfoTable.horizontalHeaderItem(4)
+        ___qtablewidgetitem4.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e\u0434\u0440\u0430\u0437\u0434\u0435\u043b\u0435\u043d\u0438\u0435", None));
+        ___qtablewidgetitem5 = self.tableWidget.horizontalHeaderItem(0)
+        ___qtablewidgetitem5.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0443\u0435\u043c\u044b\u0439 \u0441\u0440\u043e\u043a", None));
+        ___qtablewidgetitem6 = self.tableWidget.horizontalHeaderItem(1)
+        ___qtablewidgetitem6.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043d\u0444\u0435\u043a\u0446\u0438\u043e\u043d\u043d\u043e\u0435 \u0437\u0430\u0431\u043e\u043b\u0435\u0432\u0430\u043d\u0438\u0435", None));
         self.addLineButton.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0441\u0442\u0440\u043e\u043a\u0443", None))
         self.deleteLineButton.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0441\u0442\u0440\u043e\u043a\u0443", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.database), QCoreApplication.translate("MainWindow", u"database.sqlite", None))
