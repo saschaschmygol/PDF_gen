@@ -421,3 +421,6 @@ def process_excel_to_sqlite(file_path, base_path):
     # Сохранение изменений в базе данных
     conn.commit()
     conn.close()
+
+#process_excel_to_sqlite('./Baza.xlsx', '1.db')
+

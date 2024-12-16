@@ -46,7 +46,7 @@ class Ui_MainWindow(object):
         self.messagesHome.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 1034, 705))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 1026, 684))
         self.messagesHome.setWidget(self.scrollAreaWidgetContents)
 
         self.verticalLayout.addWidget(self.messagesHome)
@@ -187,7 +187,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1078, 22))
+        self.menubar.setGeometry(QRect(0, 0, 1078, 26))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -213,7 +213,7 @@ class Ui_MainWindow(object):
         self.surnameTextField.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043e\u0442\u0447\u0435\u0441\u0442\u0432\u043e \u043f\u0430\u0446\u0438\u0435\u043d\u0442\u0430", None))
         self.searchPatientButton.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0439\u0442\u0438 \u043f\u0430\u0446\u0438\u0435\u043d\u0442\u0430", None))
         self.generatePDF.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0433\u0435\u043d\u0435\u0440\u0438\u0440\u043e\u0432\u0430\u0442\u044c PDF", None))
-        self.preview_button.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u0435\u0434\u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440", None))
+        self.preview_button.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u0435\u0434\u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440 \u0443\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u044f", None))
         ___qtablewidgetitem = self.personInfoTable.horizontalHeaderItem(0)
         ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"\u0424\u0430\u043c\u0438\u043b\u0438\u044f", None));
         ___qtablewidgetitem1 = self.personInfoTable.horizontalHeaderItem(1)

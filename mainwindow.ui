@@ -42,8 +42,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1034</width>
-             <height>705</height>
+             <width>1026</width>
+             <height>684</height>
             </rect>
            </property>
           </widget>
@@ -169,7 +169,7 @@
         <item>
          <widget class="QPushButton" name="preview_button">
           <property name="text">
-           <string>Предпросмотр</string>
+           <string>Предпросмотр уведомления</string>
           </property>
          </widget>
         </item>
@@ -300,7 +300,7 @@
      <x>0</x>
      <y>0</y>
      <width>1078</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

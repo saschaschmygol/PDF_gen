@@ -2,6 +2,7 @@ import sqlite3
 import datetime
 import json
 
+
 def searсh_men(id):
     ''' Проверка наличия пациента в базе '''
     conn = sqlite3.connect('1.db')
@@ -15,17 +16,23 @@ def searсh_men(id):
     else:
         return True
 
-def update_json_scope_work(filename, rows):
-    ''' Обновление json сферы работы rows = ([], [], []) - [] строка запроса '''
 
-    with open('data_dict.json', 'r', encoding='utf-8') as f:
+def update_json_scope_work(filename, fileDB):
+    ''' Обновление json сферы работы rows = ([], [], []) - [] строка запроса '''
+    conn = sqlite3.connect(fileDB)
+    cursor = conn.cursor()
+    cursor.execute(
+        f"SELECT S.name, S.vac_1, S.vac_2, S.vac_3, S.vac_4, S.vac_5, S.vac_6, S.vac_7, S.vac_8, S.vac_9, S.vac_10, S.vac_11, S.vac_12 FROM Сфера_Работы as S")
+    rows = cursor.fetchall()
+
+    with open(filename, 'r', encoding='utf-8') as f:
         loaded_dict = json.load(f) # словарь
 
         for i in rows:
-            loaded_dict["scope_work"][i[0]]  = [n for n in i[1:] if n != None]
+            loaded_dict["scope_work"][i[0]] = [n for n in i[1:] if n != None]
 
 
-    with open('data_dict.json', 'w', encoding='utf-8') as f: # перезапись
+    with open(filename, 'w', encoding='utf-8') as f: # перезапись
         json.dump(loaded_dict, f, ensure_ascii=False, indent=4)
 
 def age_calculate(date_of_birth): # 2002-01-23
@@ -206,3 +213,5 @@ def date_person(id):
     return date
 
 #date_person(1)
+
+update_json_scope_work('data_dict.json', '1.db')

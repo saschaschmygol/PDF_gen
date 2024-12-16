@@ -36,7 +36,13 @@ text_bot2 = ['Дополнительную информацию, что в со�
 
 
 
-data_dict = {'table_header': table_header, 'text_top': text_top, 'text_bot': text_bot, 'text_bot2': text_bot2}
+keys_list = ['table_header', 'text_top', 'text_bot', 'text_bot2']
+values_list = [table_header, text_top, text_bot, text_bot2]
+
+with open('data_dict.json', 'r', encoding='utf-8') as f:
+    loaded_dict = json.load(f)  # словарь
+    for i in range(len(keys_list)):
+        loaded_dict[keys_list[i]] = values_list[i]
 
 with open('data_dict.json', 'w', encoding='utf-8') as f:
-    json.dump(data_dict, f, ensure_ascii=False, indent=4)
+    json.dump(loaded_dict, f, ensure_ascii=False, indent=4)
