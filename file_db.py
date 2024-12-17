@@ -3,18 +3,19 @@ import datetime
 import json
 
 
-def searсh_men(id):
+def searсh_men(personInfo: list):
     ''' Проверка наличия пациента в базе '''
     conn = sqlite3.connect('1.db')
     cursor = conn.cursor()
-    cursor.execute(f"SELECT S.Имя, S.Фамилия, S.Отчество, S.Пол, S.Дата_Рождения FROM Сотрудник as S WHERE S.ID = {id};")
+    cursor.execute(f"SELECT S.ID, S.Имя, S.Фамилия, S.Отчество, S.Дата_Рождения FROM Сотрудник as S WHERE (S.Имя = '{personInfo[0]}' AND S.Отчество ='{personInfo[2]}' AND S.Фамилия = '{personInfo[1]}');")
     rows = cursor.fetchall()
+
     pers_info = rows
 
-    if len(rows[0]) == 0:
+    if len(rows) == 0:
         return False
     else:
-        return True
+        return pers_info
 
 
 def update_json_scope_work(filename, fileDB):
@@ -97,9 +98,9 @@ def date_person(id):
 
     # обновляем словарь сферы работы json
     cursor = conn.cursor()
-    cursor.execute(f"SELECT S.name, S.vac_1, S.vac_2, S.vac_3, S.vac_4, S.vac_5, S.vac_6, S.vac_7, S.vac_8, S.vac_9, S.vac_10, S.vac_11, S.vac_12 FROM Сфера_Работы as S")
-    rows = cursor.fetchall()
-    update_json_scope_work('data_dict.json', rows)
+    # cursor.execute(f"SELECT S.name, S.vac_1, S.vac_2, S.vac_3, S.vac_4, S.vac_5, S.vac_6, S.vac_7, S.vac_8, S.vac_9, S.vac_10, S.vac_11, S.vac_12 FROM Сфера_Работы as S")
+    # rows = cursor.fetchall()
+    update_json_scope_work('data_dict.json', '1.db')
 
     # Получение персональных данных
     cursor.execute(f"SELECT S.Имя, S.Фамилия, S.Отчество, S.Пол, S.Дата_Рождения FROM Сотрудник as S WHERE S.ID = {id};")
@@ -110,6 +111,12 @@ def date_person(id):
     date['name'] = pers_info[0][1] + ' ' + pers_info[0][0] + ' ' + pers_info[0][2]  # формируем имя в строку
     gender = pers_info[0][3]
     print(age, date['name'], gender)
+
+    #Получение должности и подразделения
+    cursor.execute(f"SELECT Д.name, Д.Подразделение FROM Должность as Д WHERE Д.ID = (SELECT S.Должность_Сотрудника FROM Сотрудник as S WHERE ID={id})")
+    rows = cursor.fetchall()
+    pers_info_d = rows
+    date['post_division'] = [pers_info_d[0][0], pers_info_d[0][1]]
 
     #Получение сферы работы пациента
     cursor.execute(f"SELECT S.Сфера_Работы FROM Должность as S WHERE S.ID = (SELECT Сотрудник.Должность_Сотрудника FROM Сотрудник WHERE Сотрудник.ID={id});")
@@ -123,7 +130,7 @@ def date_person(id):
 
     # получение списка последних вакцин в соответствии со списком по должности
     strVaccineList = ", ".join([f" '{str(vac)}'" for vac in vaccineListScope])
-    cursor.execute(f"SELECT MAX(Вакцинация.Дата) as Дата, Вакцинация.Название_Прививки, Вакцинация.Тип FROM Вакцинация  GROUP BY Вакцинация.ID_Сотрудника, Вакцинация.Название_Прививки HAVING Вакцинация.ID_Сотрудника = 1 AND Название_Прививки IN({strVaccineList});")
+    cursor.execute(f"SELECT MAX(Вакцинация.Дата) as Дата, Вакцинация.Название_Прививки, Вакцинация.Тип FROM Вакцинация  GROUP BY Вакцинация.ID_Сотрудника, Вакцинация.Название_Прививки HAVING Вакцинация.ID_Сотрудника = {id} AND Название_Прививки IN({strVaccineList});")
     rows = cursor.fetchall()
     lastVacList = rows
     print(f" Раньше велась {lastVacList}")
@@ -214,4 +221,4 @@ def date_person(id):
 
 #date_person(1)
 
-update_json_scope_work('data_dict.json', '1.db')
+#update_json_scope_work('data_dict.json', '1.db')
