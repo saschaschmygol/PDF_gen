@@ -8,6 +8,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.units import inch
 from file_db import date_person
 import json
+import os
 
 pdfmetrics.registerFont(TTFont('Times', 'timesnewromanpsmt.ttf'))
 pdfmetrics.registerFont(TTFont('TimesBold', 'TimesNewRomanBold.ttf'))
@@ -37,7 +38,11 @@ def format_date_table(s1, s2, date,TAB_PARAGRAPH_STYLE, KALEND_PO_EPIDEM_PAKAZ, 
     return lst_date
 
 def generate_pdf(date):
-    doc = SimpleDocTemplate("example_table.pdf", pagesize=A4, topMargin=cm_to_points(1), leftMargin=cm_to_points(1))
+    output_folder = "PDF_files"
+    output_path = os.path.join(output_folder, str(date['name']) + "example.pdf")
+    os.makedirs(output_folder, exist_ok=True)
+
+    doc = SimpleDocTemplate(output_path, pagesize=A4, topMargin=cm_to_points(1), leftMargin=cm_to_points(1))
 
     with open('data_dict.json', 'r', encoding='utf-8') as f: # json файл с текстом
         loaded_dict = json.load(f)
@@ -73,7 +78,7 @@ def generate_pdf(date):
     doc.build(content) # Добавляем данные в документ
 
 if __name__== '__main__':
-    date = {'name': 'III ii ii', 'date': [['10-31-31', 'Дифтерия']]}
+    date = {'name': 'III ii ii', 'date': [['10-31-31', 'Дифтерия, столбняк']]}
     #date = data_person(1)
     #print(date)
     #date = date_person(1)
