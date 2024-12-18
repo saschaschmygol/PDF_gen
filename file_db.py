@@ -5,17 +5,30 @@ import json
 
 def searсh_men(personInfo: list):
     ''' Проверка наличия пациента в базе '''
+    request_bd = ["S.Имя =  '", "S.Фамилия = '", "S.Отчество = '"] # для поиска по набору параметров Ф_И_О
+    str_pers_info = ''
+
+    if any(personInfo): # если список не пустой
+        for i, n in enumerate(personInfo):
+            if  personInfo[i] != '':
+                if str_pers_info == '':
+                    str_pers_info +=  f"{request_bd[i]}{personInfo[i]}'"
+                else:
+                    str_pers_info += f" AND {request_bd[i]}{personInfo[i]}'"
+    else:
+        str_pers_info = 'false'
+
+    #print(str_pers_info)
+
     conn = sqlite3.connect('1.db')
     cursor = conn.cursor()
-    cursor.execute(f"SELECT S.ID, S.Имя, S.Фамилия, S.Отчество, S.Дата_Рождения FROM Сотрудник as S WHERE (S.Имя = '{personInfo[0]}' AND S.Отчество ='{personInfo[2]}' AND S.Фамилия = '{personInfo[1]}');")
+    cursor.execute(f"SELECT S.ID, S.Имя, S.Фамилия, S.Отчество, S.Дата_Рождения FROM Сотрудник as S WHERE ({str_pers_info});")
     rows = cursor.fetchall()
-
-    pers_info = rows
 
     if len(rows) == 0:
         return False
     else:
-        return pers_info
+        return rows
 
 
 def update_json_scope_work(filename, fileDB):

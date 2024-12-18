@@ -1,13 +1,16 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QAbstractItemView, QFileDialog, QTableWidgetItem
-from PySide6.QtCore import Slot
+
+#from PySide6.QtGui import Qt
+from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QAbstractItemView, QFileDialog, QTableWidgetItem, \
+    QTableWidget, QTextEdit
+from PySide6.QtCore import Slot, QDate, Qt
 import traceback
+import datetime
 
 from ui_mainwindow import Ui_MainWindow
 from file_create import generate_pdf
 from file_db import date_person, searсh_men
 from read_exel import process_excel_to_sqlite
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -27,9 +30,17 @@ class MainWindow(QMainWindow):
         self.ui.tableWidget.setEditTriggers(QAbstractItemView.AllEditTriggers)  # Установка редактируемости всех ячеек таблицы
 
         self.events()
+        self.settings_start()
 
+    def settings_start(self):
+        ''' стартовые настройки полей '''
+
+        today_time = datetime.date.today()
+        self.ui.dateEdit_2.setDate(QDate(today_time.year,  today_time.month, today_time.day)) #установка сегодняшней даты
+        self.ui.personInfoTable.setEditTriggers(QTableWidget.NoEditTriggers) # отключаем редактирование таблицы с перс. информ.
 
     def events(self):
+
         self.ui.addLineButton.clicked.connect(self.add_line_table)
         self.ui.deleteLineButton.clicked.connect(self.delete_line_table)
         self.ui.generatePDF.clicked.connect(self.clic_generate)
@@ -91,17 +102,18 @@ class MainWindow(QMainWindow):
 
     def search_pacient(self):
         'Поиск пациента в бд'
-        self.ui.findPatients.clear()
+
+        self.ui.findPatients.clear() # очистка предыдущего списка
 
         name = self.ui.searchPatientTextField.toPlainText() # считываеин данных ФИО
         fname = self.ui.fnamTextField.toPlainText()
         lname = self.ui.surnameTextField.toPlainText()
-        personInfo = [str(name), str(fname), str(lname)] # список для sql запроса
+        personInfo = [str(name).strip(), str(fname).strip(), str(lname).strip()] # список для sql запроса
 
         #print(personInfo)
 
         try:
-            result_request = searсh_men(personInfo) # получение персональной информации [('', '', ''), ()]
+            result_request = searсh_men(personInfo) # получение персональной информации в формате [('', '', '', '', ''), ()]
             #print(result_request)
             if result_request != False:
                 for result in result_request:
@@ -116,10 +128,14 @@ class MainWindow(QMainWindow):
 
 
     def preview_notification(self):
-        select_text = self.ui.findPatients.currentText()
+        ''' Предпросмотр уведомления '''
 
+        self.ui.tableWidget.setRowCount(0)
+        self.ui.personInfoTable.setRowCount(0)
+
+        select_text = self.ui.findPatients.currentText()
         lst_select_text = select_text.split(' ') #разбиваем для выделения ID
-        #print(lst_select_text)
+
         if len(lst_select_text[0]) != 0:
             #print(lst_select_text[1])
             id = int(lst_select_text[1])
@@ -139,7 +155,7 @@ class MainWindow(QMainWindow):
             for row_data in date['date']:
                 row_pos_vacinfo = self.ui.tableWidget.rowCount()
                 self.ui.tableWidget.insertRow(row_pos_vacinfo)
-                for column, value in enumerate(row_data[:-1]):
+                for column, value in enumerate(row_data[:]):
                     self.ui.tableWidget.setItem(row_pos_vacinfo, column, QTableWidgetItem(value))
 
 
@@ -148,7 +164,6 @@ class MainWindow(QMainWindow):
         if file_path:
             print(f"Путь к выбранному файлу: {file_path}")
             try:
-                print(1)
                 process_excel_to_sqlite(file_path, '1.db')
                 self.ui.loadTab.setText('Таблица загружена')
             except Exception:
@@ -173,3 +188,4 @@ if __name__ == "__main__":
     window.show()
 
     sys.exit(app.exec())
+

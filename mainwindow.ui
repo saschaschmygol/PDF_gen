@@ -42,8 +42,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1026</width>
-             <height>684</height>
+             <width>1034</width>
+             <height>705</height>
             </rect>
            </property>
           </widget>
@@ -167,10 +167,98 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="preview_button">
-          <property name="text">
-           <string>Предпросмотр уведомления</string>
+         <widget class="QWidget" name="widget_3" native="true">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>30</height>
+           </size>
           </property>
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="preview_button">
+             <property name="text">
+              <string>Предпросмотр уведомления</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="maximumSize">
+              <size>
+               <width>15</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>C</string>
+             </property>
+             <property name="margin">
+              <number>2</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDateEdit" name="dateEdit_2">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="maximumSize">
+              <size>
+               <width>25</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>По</string>
+             </property>
+             <property name="margin">
+              <number>5</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDateEdit" name="dateEdit">
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
         <item>
@@ -252,13 +340,18 @@
            </item>
            <item>
             <widget class="QTableWidget" name="tableWidget">
+             <property name="lineWidth">
+              <number>1</number>
+             </property>
+             <property name="rowCount">
+              <number>0</number>
+             </property>
              <attribute name="horizontalHeaderDefaultSectionSize">
               <number>300</number>
              </attribute>
              <attribute name="horizontalHeaderStretchLastSection">
               <bool>false</bool>
              </attribute>
-             <row/>
              <column>
               <property name="text">
                <string>Рекомендуемый срок</string>
@@ -267,6 +360,11 @@
              <column>
               <property name="text">
                <string>Инфекционное заболевание</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Тип</string>
               </property>
              </column>
             </widget>
@@ -300,7 +398,7 @@
      <x>0</x>
      <y>0</y>
      <width>1078</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

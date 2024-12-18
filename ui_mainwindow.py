@@ -15,11 +15,11 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QGridLayout, QHBoxLayout,
-    QHeaderView, QLabel, QMainWindow, QMenuBar,
-    QPushButton, QScrollArea, QSizePolicy, QStatusBar,
-    QTabWidget, QTableWidget, QTableWidgetItem, QTextEdit,
-    QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QComboBox, QDateEdit, QGridLayout,
+    QHBoxLayout, QHeaderView, QLabel, QMainWindow,
+    QMenuBar, QPushButton, QScrollArea, QSizePolicy,
+    QStatusBar, QTabWidget, QTableWidget, QTableWidgetItem,
+    QTextEdit, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -46,7 +46,7 @@ class Ui_MainWindow(object):
         self.messagesHome.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 1026, 684))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 1034, 705))
         self.messagesHome.setWidget(self.scrollAreaWidgetContents)
 
         self.verticalLayout.addWidget(self.messagesHome)
@@ -115,10 +115,49 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addWidget(self.generatePDF)
 
-        self.preview_button = QPushButton(self.database)
+        self.widget_3 = QWidget(self.database)
+        self.widget_3.setObjectName(u"widget_3")
+        self.widget_3.setMaximumSize(QSize(16777215, 30))
+        self.widget_3.setStyleSheet(u"")
+        self.horizontalLayout_2 = QHBoxLayout(self.widget_3)
+        self.horizontalLayout_2.setSpacing(0)
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.preview_button = QPushButton(self.widget_3)
         self.preview_button.setObjectName(u"preview_button")
 
-        self.verticalLayout_2.addWidget(self.preview_button)
+        self.horizontalLayout_2.addWidget(self.preview_button)
+
+        self.label_2 = QLabel(self.widget_3)
+        self.label_2.setObjectName(u"label_2")
+        self.label_2.setMaximumSize(QSize(15, 16777215))
+        self.label_2.setMargin(2)
+
+        self.horizontalLayout_2.addWidget(self.label_2)
+
+        self.dateEdit_2 = QDateEdit(self.widget_3)
+        self.dateEdit_2.setObjectName(u"dateEdit_2")
+        self.dateEdit_2.setEnabled(False)
+        self.dateEdit_2.setMaximumSize(QSize(150, 16777215))
+
+        self.horizontalLayout_2.addWidget(self.dateEdit_2)
+
+        self.label = QLabel(self.widget_3)
+        self.label.setObjectName(u"label")
+        self.label.setMaximumSize(QSize(25, 16777215))
+        self.label.setMargin(5)
+
+        self.horizontalLayout_2.addWidget(self.label)
+
+        self.dateEdit = QDateEdit(self.widget_3)
+        self.dateEdit.setObjectName(u"dateEdit")
+        self.dateEdit.setMaximumSize(QSize(150, 16777215))
+        self.dateEdit.setStyleSheet(u"")
+
+        self.horizontalLayout_2.addWidget(self.dateEdit)
+
+
+        self.verticalLayout_2.addWidget(self.widget_3)
 
         self.widget_2 = QWidget(self.database)
         self.widget_2.setObjectName(u"widget_2")
@@ -153,15 +192,17 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.addWidget(self.personInfoTable)
 
         self.tableWidget = QTableWidget(self.widget_2)
-        if (self.tableWidget.columnCount() < 2):
-            self.tableWidget.setColumnCount(2)
+        if (self.tableWidget.columnCount() < 3):
+            self.tableWidget.setColumnCount(3)
         __qtablewidgetitem5 = QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(0, __qtablewidgetitem5)
         __qtablewidgetitem6 = QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(1, __qtablewidgetitem6)
-        if (self.tableWidget.rowCount() < 1):
-            self.tableWidget.setRowCount(1)
+        __qtablewidgetitem7 = QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(2, __qtablewidgetitem7)
         self.tableWidget.setObjectName(u"tableWidget")
+        self.tableWidget.setLineWidth(1)
+        self.tableWidget.setRowCount(0)
         self.tableWidget.horizontalHeader().setDefaultSectionSize(300)
         self.tableWidget.horizontalHeader().setStretchLastSection(False)
 
@@ -187,7 +228,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1078, 26))
+        self.menubar.setGeometry(QRect(0, 0, 1078, 22))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -214,6 +255,8 @@ class Ui_MainWindow(object):
         self.searchPatientButton.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0439\u0442\u0438 \u043f\u0430\u0446\u0438\u0435\u043d\u0442\u0430", None))
         self.generatePDF.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0433\u0435\u043d\u0435\u0440\u0438\u0440\u043e\u0432\u0430\u0442\u044c PDF", None))
         self.preview_button.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u0435\u0434\u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440 \u0443\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u044f", None))
+        self.label_2.setText(QCoreApplication.translate("MainWindow", u"C", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e", None))
         ___qtablewidgetitem = self.personInfoTable.horizontalHeaderItem(0)
         ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"\u0424\u0430\u043c\u0438\u043b\u0438\u044f", None));
         ___qtablewidgetitem1 = self.personInfoTable.horizontalHeaderItem(1)
@@ -228,6 +271,8 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem5.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0443\u0435\u043c\u044b\u0439 \u0441\u0440\u043e\u043a", None));
         ___qtablewidgetitem6 = self.tableWidget.horizontalHeaderItem(1)
         ___qtablewidgetitem6.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043d\u0444\u0435\u043a\u0446\u0438\u043e\u043d\u043d\u043e\u0435 \u0437\u0430\u0431\u043e\u043b\u0435\u0432\u0430\u043d\u0438\u0435", None));
+        ___qtablewidgetitem7 = self.tableWidget.horizontalHeaderItem(2)
+        ___qtablewidgetitem7.setText(QCoreApplication.translate("MainWindow", u"\u0422\u0438\u043f", None));
         self.addLineButton.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0441\u0442\u0440\u043e\u043a\u0443", None))
         self.deleteLineButton.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0441\u0442\u0440\u043e\u043a\u0443", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.database), QCoreApplication.translate("MainWindow", u"database.sqlite", None))
