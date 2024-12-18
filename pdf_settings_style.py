@@ -8,16 +8,17 @@ def cm_to_points(cm: float):
 
 def generate_str_vac(date):
     '''Генерация списка требуемых прививок в начале странпицы'''
-    str_vac = ''
-    last_n = len(date['date'])
-    cur_n = 1
+    str_vac = []
 
-    for i in date['date']:
-        if cur_n < last_n:
-            str_vac += ' ' + i[1] + ';'
-            cur_n += 1
+    for i, n in enumerate(date['date']):
+        if n and n not in str_vac:
+            str_vac.append(n[1])
         else:
-            str_vac += ' ' + i[1] + '.'
+            pass
+
+    str_vac =  list(set(str_vac))
+    str_vac = ' ; '.join(str_vac)
+
     return str_vac
 
 STYLE = TableStyle([

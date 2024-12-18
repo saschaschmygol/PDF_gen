@@ -1,4 +1,5 @@
 import sys
+import sqlite3
 
 #from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QAbstractItemView, QFileDialog, QTableWidgetItem, \
@@ -9,7 +10,7 @@ import datetime
 
 from ui_mainwindow import Ui_MainWindow
 from file_create import generate_pdf
-from file_db import date_person, searсh_men
+from file_db import date_person, searсh_men, mont_replace
 from read_exel import process_excel_to_sqlite
 
 class MainWindow(QMainWindow):
@@ -37,6 +38,7 @@ class MainWindow(QMainWindow):
 
         today_time = datetime.date.today()
         self.ui.dateEdit_2.setDate(QDate(today_time.year,  today_time.month, today_time.day)) #установка сегодняшней даты
+        self.ui.dateEdit.setDate(QDate(today_time.year,  today_time.month, today_time.day))
         self.ui.personInfoTable.setEditTriggers(QTableWidget.NoEditTriggers) # отключаем редактирование таблицы с перс. информ.
 
     def events(self):
@@ -51,8 +53,10 @@ class MainWindow(QMainWindow):
 
     def clic_generate(self):
         ''' Генерация pdf '''
+
         data = {'date': []}
         #Считать данные из QTableWidget
+
         rows = self.ui.tableWidget.rowCount()
         cols = self.ui.tableWidget.columnCount()
         table_data = []  # Список для хранения данных
@@ -63,10 +67,12 @@ class MainWindow(QMainWindow):
                 item = self.ui.tableWidget.item(row, col)
                 # Проверяем, что ячейка не пустая
                 if item is not None:
-                    row_data.append(item.text())
+                    row_data.append(item.text()) #['', '', '']
                 else:
                     row_data.append("")  # Если пустая, добавляем пустую строку
-            table_data.append(row_data)
+            table_data.append(row_data)  #[[''''], [''''], [''''], ]
+
+        #print(table_data)
 
         rows = self.ui.personInfoTable.rowCount()
         cols = self.ui.personInfoTable.columnCount()
@@ -83,14 +89,35 @@ class MainWindow(QMainWindow):
                     row_data.append("")  # Если пустая, добавляем пустую строку
             table_data_pers.append(row_data)
 
+
+        select_text = self.ui.findPatients.currentText()
+        lst_select_text = select_text.split(' ') #разбиваем для выделения ID
+        if len(lst_select_text[0]) != 0:
+            id = int(lst_select_text[1])
+
+
+        conn = sqlite3.connect('1.db')  # выделяем гендер
+        cursor = conn.cursor()
+        cursor.execute(
+            f"SELECT S.Пол FROM Сотрудник as S WHERE S.ID = {id};")
+        rows = cursor.fetchall()
+        pers_info = rows
+        gender = pers_info[0][0]
+
         # Печатаем данные таблицы
         # print(table_data)
         # print(table_data_pers)
         data['name'] = table_data_pers[0][0] + ' ' + table_data_pers[0][1] + ' ' +  table_data_pers[0][2]
         for dat in table_data:
             data['date'].append(dat)
-
+        norm_dat = mont_replace(data['date'])
+        data['date'] = norm_dat[:]
+        data['id'] = id
+        data['gender'] = gender
         print(data)
+
+        #print(data)
+        #print(norm_dat)
 
         try:
             generate_pdf(data)

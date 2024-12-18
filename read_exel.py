@@ -15,9 +15,42 @@ def process_excel_to_sqlite(file_path, base_path):
         print(f"Error reading Excel file: {e}")
         raise
 
+    # Приведение всех имен столбцов к нижнему регистру для унификации
+    df.columns = df.columns.str.strip().str.lower()  # Убираем пробелы и приводим к нижнему регистру
+    print("Columns after normalization:", df.columns)
+    print(df.columns)
+    # Проверка наличия столбцов с "unnamed"
+    unnamed_columns = [col for col in df.columns if 'unnamed' in col]
+    if unnamed_columns:
+        for unnamed_col in unnamed_columns:
+            # Переименовываем столбец 'unnamed' в более осмысленное имя, например 'статус'
+            df.rename(columns={unnamed_col: 'статус'}, inplace=True)
+        print(f"Renamed columns {unnamed_columns} to 'статус'.")
+    else:
+        print("No unnamed columns found.")
+
+    # Проверка наличия столбца 'статус'
+    if 'статус' not in df.columns:
+        print("Столбец 'Статус' не найден в Excel. Используется значение по умолчанию.")
+        df['статус'] = None  # Если столбца 'статус' нет, добавляем с пустыми значениями
+
+    # Словарь для приведения столбцов из нижнего регистра к нужному виду
+    columns_map = {
+        'фамилия': 'Фамилия',
+        'имя': 'Имя',
+        'отчество': 'Отчество',
+        'дата рождения': 'Дата рождения',
+        'штатная должность': 'Штатная должность',
+        'штатное подразделение': 'Штатное подразделение',
+        'краткое название': 'Краткое название',
+        'статус': 'Статус',
+    }
+
+    # Применяем соответствие столбцов
+    df = df.rename(columns=columns_map)
+
     # Обработка даты рождения
     df['Дата рождения'] = pd.to_datetime(df['Дата рождения'], dayfirst=True, errors='coerce').dt.strftime('%Y-%m-%d')
-    print(df.columns)  # Проверка наименований столбцов
 
     sphere_dict = {
         "Медик": [
@@ -147,6 +180,11 @@ def process_excel_to_sqlite(file_path, base_path):
         cursor.execute("DELETE FROM Должность")
         cursor.execute("DELETE FROM Показатель_AntiHBs")
         print("Deleted all records from Вакцинация, Сотрудник, Должность, Показатель_AntiHBs.")
+
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name='Вакцинация'")  # Для таблицы Вакцинация
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name='Должность'")  # Для таблицы Должность
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name='Показатель_AntiHBs'")  # Для таблицы Показатель_AntiHBs
+        print("Reset auto-increment counters for all tables.")
     except Exception as e:
         print(f"Error deleting data from tables: {e}")
         conn.rollback()  # Откатить транзакцию в случае ошибки
@@ -205,6 +243,7 @@ def process_excel_to_sqlite(file_path, base_path):
             print(f"Error inserting or updating row {index}: {e}")
 
     # Вставка или обновление данных в таблицу Сотрудник
+    # Вставка или обновление данных в таблицу Сотрудник
     id_counter = 1  # Счетчик для генерации ID
 
     for _, row in df.iterrows():  # Используем индекс "_" для пропуска индекса DataFrame
@@ -237,6 +276,9 @@ def process_excel_to_sqlite(file_path, base_path):
 
             # Определение пола
             gender = determine_gender(row.get('Отчество', ''))
+
+            # Лог для проверки Статуса
+            print(f"Статус для {row.get('Фамилия')} {row.get('Имя')}: {row.get('Статус')}")
 
             # Вставка данных сотрудника с независимым ID
             cursor.execute("""
@@ -273,7 +315,26 @@ def process_excel_to_sqlite(file_path, base_path):
           OR Дата_Рождения IS NULL
     """)
     print("Removed invalid rows with NULL in required fields.")
+
     # Вставка данных в таблицу Вакцинация
+    # Переименовываем столбцы в DataFrame
+    df.rename(columns={
+        'гв': 'ГВ',
+        'клещевой энцефалит': 'Клещевой энцефалит',
+        'адс-м': 'АДС-м',
+        'шигеллвак (ежегодная вакцинация)': 'Шигеллвак',
+        'корь': 'Корь',
+        'краснуха': 'Краснуха',
+        'гепатит а': 'Гепатит А',
+        'грипп (ежегодная вакцинация)': 'Грипп',
+        'ветряная оспа': 'Ветряная оспа',
+        'впч': 'ВПЧ',
+        'пневмо': 'Пневмо',
+        'нкви': 'НКВИ',
+        'гиг.аттестация': 'Гиг. аттестация'
+    }, inplace=True)
+    # Лог для проверки
+    print(f"Columns after renaming: {df.columns}")
     # Словарь соответствий названий прививок
     vaccination_mapping = {
         'ГВ': 'Гепатит B',
@@ -324,12 +385,18 @@ def process_excel_to_sqlite(file_path, base_path):
             date_pattern = r'\d{2}\.\d{2}\.\d{4}'
             allowed_types = {'RV', 'V', 'RV1', 'V1', 'V2', 'V3'}
 
+            # Логика для ежегодных прививок
+            ежегодные_прививки = {'Шигеллвак', 'Грипп'}
+
             for вакцина, данные in вакцинации.items():
                 if pd.notna(данные):
                     данные = str(данные).strip()
                     прививки = re.split(r'[;,\s]+', данные)  # Разделение строки на части
 
+                    прививки_по_типу = {}  # Словарь для хранения дат по типам прививок
                     текущий_тип = None  # Текущий тип прививки
+
+                    # Перебираем все элементы (даты и типы)
                     for элемент in прививки:
                         элемент = элемент.strip()
                         if not элемент:
@@ -337,50 +404,90 @@ def process_excel_to_sqlite(file_path, base_path):
 
                         # Если элемент - допустимый тип прививки
                         if элемент.upper() in allowed_types:
-                            текущий_тип = элемент.upper()
+                            if элемент.upper() == 'V' and вакцина != 'Краснуха':
+                                текущий_тип = 'V1'  # Для всех прививок, кроме Краснухи, заменяем на v1
+                            else:
+                                текущий_тип = элемент.upper()
                             continue
 
                         # Если элемент - дата
                         if re.match(date_pattern, элемент):
                             if текущий_тип is None:
+                                # Если тип прививки не указан до этой даты, выводим ошибку
                                 print(
                                     f"Ошибка: не указан тип прививки для даты {элемент}. Сотрудник ID: {сотрудник_id}")
                                 continue
 
                             try:
                                 дата = pd.to_datetime(элемент, dayfirst=True).strftime('%Y-%m-%d')
-                                название_прививки = vaccination_mapping.get(вакцина, вакцина)
 
-                                # Проверка существования записи
-                                cursor.execute("""
-                                    SELECT 1 FROM Вакцинация
-                                    WHERE ID_Сотрудника = ? AND Название_Прививки = ? AND Дата = ? AND Тип = ?
-                                """, (сотрудник_id, название_прививки, дата, текущий_тип))
-                                exists = cursor.fetchone()
+                                # Добавляем дату в словарь для текущего типа прививки
+                                if текущий_тип not in прививки_по_типу:
+                                    прививки_по_типу[текущий_тип] = []
+                                прививки_по_типу[текущий_тип].append(дата)
 
-                                if not exists:
-                                    cursor.execute("""
-                                        INSERT INTO Вакцинация (ID_Сотрудника, Название_Прививки, Дата, Тип)
-                                        VALUES (?, ?, ?, ?)
-                                    """, (сотрудник_id, название_прививки, дата, текущий_тип))
-                                    print(
-                                        f"Inserted: Сотрудник ID {сотрудник_id}, Прививка {название_прививки}, Дата {дата}, Тип {текущий_тип}")
-                                else:
-                                    print(
-                                        f"Record exists: Сотрудник ID {сотрудник_id}, Прививка {название_прививки}, Дата {дата}, Тип {текущий_тип}")
-
-                                текущий_тип = None  # Сброс текущего типа после обработки даты
                             except Exception as e:
                                 print(f"Ошибка обработки даты {элемент}: {e}")
                         else:
                             print(f"Некорректный элемент прививки: {элемент}. Сотрудник ID: {сотрудник_id}")
 
+                    # Теперь для каждой прививки выбираем последнюю дату и вставляем её в базу
+                    for тип, даты in прививки_по_типу.items():
+                        if not даты:  # Если нет дат для текущего типа прививки
+                            continue
+
+                        # Для ежегодных прививок, заменяем тип на RV
+                        if вакцина in ежегодные_прививки:
+                            тип = 'RV'
+
+                        # Сортируем даты и выбираем последнюю
+                        последняя_дата = max(даты)
+
+                        # Получаем название прививки для вставки
+                        название_прививки = vaccination_mapping.get(вакцина, вакцина)
+
+                        # Проверка существования записи в базе данных для последней даты
+                        cursor.execute("""
+                            SELECT 1 FROM Вакцинация
+                            WHERE ID_Сотрудника = ? AND Название_Прививки = ? AND Дата = ? AND Тип = ?
+                        """, (сотрудник_id, название_прививки, последняя_дата, тип))
+                        exists = cursor.fetchone()
+
+                        if not exists:
+                            cursor.execute("""
+                                INSERT INTO Вакцинация (ID_Сотрудника, Название_Прививки, Дата, Тип)
+                                VALUES (?, ?, ?, ?)
+                            """, (сотрудник_id, название_прививки, последняя_дата, тип))
+                            print(
+                                f"Inserted: Сотрудник ID {сотрудник_id}, Прививка {название_прививки}, Дата {последняя_дата}, Тип {тип}")
+                        else:
+                            print(
+                                f"Record exists: Сотрудник ID {сотрудник_id}, Прививка {название_прививки}, Дата {последняя_дата}, Тип {тип}")
 
         except Exception as e:
             print(f"Error processing row {index}: {e}")
 
     # Установим локаль для корректной обработки чисел с запятой
     locale.setlocale(locale.LC_NUMERIC, 'ru_RU.UTF-8')  # или используйте локаль вашей системы
+
+    # Проверяем, существует ли столбец с показателями
+    if 'показатель anti-hbs октябрь 2023 мме/мл' in df.columns:
+        # Очистка и преобразование значений столбца в числовой формат
+        def convert_to_numeric(value):
+            try:
+                if pd.isna(value):
+                    return value  # Пропускаем NaN
+                if isinstance(value, str):
+                    value = value.replace(' ', '').replace(',', '.').replace('>', '')  # Убираем пробелы и запятые
+                return pd.to_numeric(value, errors='coerce')  # Преобразуем в число или NaN
+            except Exception as e:
+                print(f"Ошибка преобразования значения: {value} - {e}")
+                return None
+
+        df['показатель anti-hbs октябрь 2023 мме/мл'] = df['показатель anti-hbs октябрь 2023 мме/мл'].apply(
+            convert_to_numeric)
+    else:
+        print("Столбец 'показатель anti-hbs октябрь 2023 мме/мл' отсутствует в данных.")
 
     # Вставка данных в таблицу Показатель_AntiHBs
     for index, row in df.iterrows():
@@ -391,6 +498,7 @@ def process_excel_to_sqlite(file_path, base_path):
                 WHERE Фамилия = ? AND Имя = ? AND Отчество = ? AND Дата_Рождения = ?
             """, (row['Фамилия'].strip(), row['Имя'].strip(), row['Отчество'].strip(), row['Дата рождения']))
             сотрудник = cursor.fetchone()
+
             if not сотрудник:
                 print(f"Сотрудник не найден: {row['Фамилия']} {row['Имя']} {row['Отчество']}")
                 continue
@@ -398,7 +506,7 @@ def process_excel_to_sqlite(file_path, base_path):
             сотрудник_id = сотрудник[0]
 
             # Получаем показатель Anti-HBs
-            показатель_anti_hbs = row.get('Показатель Anti-HBs октябрь 2023 мМЕ/мл')
+            показатель_anti_hbs = row.get('показатель anti-hbs октябрь 2023 мме/мл')
 
             if pd.notna(показатель_anti_hbs):  # Проверяем на nan
                 if isinstance(показатель_anti_hbs, str):
@@ -411,10 +519,15 @@ def process_excel_to_sqlite(file_path, base_path):
                         части = показатель_anti_hbs.split()
                         if len(части) == 2:
                             дата = pd.to_datetime(части[0], dayfirst=True, errors='coerce').strftime('%Y-%m-%d')
+
                             # Преобразуем строку в число, обрабатывая как текст
                             try:
                                 # Убираем все пробелы и заменяем запятую на точку
-                                значение = float(части[1].replace(' ', '').replace(',', '.'))
+                                строковое_значение = части[1].replace(' ', '').replace(',', '.')
+
+                                # Преобразуем в float, если это возможно
+                                значение = float(строковое_значение)  # Преобразование в float для REAL
+
                                 print(f"Parsed value for {сотрудник_id}: {значение}")  # Логирование
                             except ValueError as e:
                                 print(
@@ -460,4 +573,7 @@ def process_excel_to_sqlite(file_path, base_path):
 
 # Пример вызова функции для привязки к кнопке
 if __name__ == "__main__":
-    process_excel_to_sqlite()
+    file_path = r'C:\Users\User\PycharmProjects\pdf_generate\Baza2.xlsx'
+    base_path = r'C:\Users\User\PycharmProjects\pdf_generate\1 (3).db'
+
+    process_excel_to_sqlite(file_path, base_path)

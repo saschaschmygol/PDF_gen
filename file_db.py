@@ -1,6 +1,15 @@
 import sqlite3
 import datetime
 import json
+from pdf_settings_style import MONTH
+
+def mont_replace(date ):
+    ''' ['2024-12-23', 'грипп', 'rv'] '''
+    duplicat_date = date[:]
+    for n in duplicat_date:
+        n[0] = str(MONTH[n[0].split('-')[1]]) + ' ' + str(n[0].split('-')[0])
+
+    return duplicat_date
 
 
 def searсh_men(personInfo: list):
@@ -224,9 +233,10 @@ def date_person(id):
             else:
                 break
 
-    print(date['date'])
+    #print(date['date'])
     slist = sorted(date['date'])
     date['date'] = slist[:]
+    date['id'] = id
     #sort_mounth(date['date'])
     print(slist)
 

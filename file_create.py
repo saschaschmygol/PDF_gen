@@ -13,7 +13,7 @@ import os
 pdfmetrics.registerFont(TTFont('Times', 'timesnewromanpsmt.ttf'))
 pdfmetrics.registerFont(TTFont('TimesBold', 'TimesNewRomanBold.ttf'))
 
-def format_date_table(s1, s2, date,TAB_PARAGRAPH_STYLE, KALEND_PO_EPIDEM_PAKAZ, NATION_KALENDAR, REGION_KALENDAR):
+def format_date_table(s1, s2, date, TAB_PARAGRAPH_STYLE, KALEND_PO_EPIDEM_PAKAZ, NATION_KALENDAR, REGION_KALENDAR):
     ''' Создание списка данных для заполнения таблицы #->список [['', ''], ['', ''], [''..]] '''
 
     lst_info = [['1' for i in range(5)] for i in range(len(date['date']))]
@@ -39,7 +39,7 @@ def format_date_table(s1, s2, date,TAB_PARAGRAPH_STYLE, KALEND_PO_EPIDEM_PAKAZ, 
 
 def generate_pdf(date):
     output_folder = "PDF_files"
-    output_path = os.path.join(output_folder, str(date['name']) + "example.pdf")
+    output_path = os.path.join(output_folder, str(date['name']) + ' ' + str(date['id']) + " example.pdf")
     os.makedirs(output_folder, exist_ok=True)
 
     doc = SimpleDocTemplate(output_path, pagesize=A4, topMargin=cm_to_points(1), leftMargin=cm_to_points(1))
@@ -50,9 +50,9 @@ def generate_pdf(date):
     col_widths = [cm_to_points(1.9), cm_to_points(3), cm_to_points(4.5), cm_to_points(4.7),
                   cm_to_points(4.5)]  # ширина колонок
 
+    loaded_dict['text_top'][1] += 'ый ' if date['gender'] == 'м' else 'ая '
     loaded_dict['text_top'][1] += str(f"{date['name']}! </para>") # добавляем к тексту имя
-    print(loaded_dict['text_top'][1])
-    loaded_dict['text_top'][2] += str(f"{generate_str_vac(date)} ") # добавляем к тексту мписок прививок
+    loaded_dict['text_top'][2] += str(f"{generate_str_vac(date)} ") # добавляем к тексту список прививок
 
 
     stroka_table_words = [[] for i in loaded_dict['table_header']]
