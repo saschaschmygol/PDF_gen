@@ -19,7 +19,7 @@ def format_date_table(s1, s2, date, TAB_PARAGRAPH_STYLE, KALEND_PO_EPIDEM_PAKAZ,
     lst_info = [['1' for i in range(5)] for i in range(len(date['date']))]
     for i, n in enumerate(date['date']):
         lst_info[i][0] = n[0]
-        lst_info[i][1] = n[1]
+        lst_info[i][1] = n[1] + '  (' + n[2] + ')'
         lst_info[i][2] = REGION_KALENDAR[n[1]]
         lst_info[i][3] = NATION_KALENDAR[n[1]]
         lst_info[i][4] = KALEND_PO_EPIDEM_PAKAZ[n[1]]

@@ -4,7 +4,7 @@ import json
 from pdf_settings_style import MONTH
 
 def mont_replace(date ):
-    ''' ['2024-12-23', 'грипп', 'rv'] '''
+    ''' ['2024-12-23', 'грипп', 'rv'] -> ['Ноябрь 2024'] '''
     duplicat_date = date[:]
     for n in duplicat_date:
         n[0] = str(MONTH[n[0].split('-')[1]]) + ' ' + str(n[0].split('-')[0])
@@ -75,14 +75,14 @@ def sort_mounth(date):
     sorted_date = sorted(date, key=lambda x: datetime.datetime.strptime(x[0], '%Y-%m-%d'))
     return sorted_date
 
-def check_year(date):
+def check_year(date, deadline_date):
     ''' date 2023-03-21 Проверка года'''
     lst_data: list = date.split('-')  # выделяем год месяц день
     year = int(lst_data[0])
     month = int(lst_data[1])
     day = int(lst_data[2])
     custom_date = datetime.datetime(year, month, day)
-    if year > 2025:
+    if custom_date > deadline_date :
         return False
     else:
         return True
@@ -109,7 +109,7 @@ def add_time(current_date, days_to_add): # дата в формате 2024-02-21
 
     return new_date
 
-def date_person(id):
+def date_person(id, deadline_date):
     with open('data_dict.json', 'r', encoding='utf-8') as f:
         loaded_dict_json = json.load(f) # словарь
 
@@ -148,6 +148,8 @@ def date_person(id):
 
     # Получение необходимых вакцин по должности
     vaccineListScope = loaded_dict_json["scope_work"][scope_of_work]
+    if "Коклюш" in vaccineListScope:
+        vaccineListScope.remove('Коклюш')
     print(vaccineListScope)
 
     # получение списка последних вакцин в соответствии со списком по должности
@@ -179,7 +181,7 @@ def date_person(id):
     # если раньше не велась вакцинация
     alt_lst = [i[1] for i in lastVacList] #в виде списка те, которые велись
     new_lst_vac_work = list(set(vaccineListScope) - set(alt_lst)) #список прививок для которых нужно начать схему вакцинации
-    print(new_lst_vac_work)
+    #print(new_lst_vac_work)
 
     for i, n in enumerate(new_lst_vac_work):
         cond = '0' #начальное состояние прививки
@@ -190,7 +192,7 @@ def date_person(id):
             newTime = add_time(lastData, addTime)
             #print(addTime, newTime, n)
 
-            if check_year(newTime): # если укладывается в год
+            if check_year(newTime, deadline_date): # если укладывается в год
 
                 if cond != loaded_dict_json["vaccination"][n][cond][1]:
                     pass
@@ -217,7 +219,7 @@ def date_person(id):
             addTime = loaded_dict_json["vaccination"][n[1]][cond][0]
             newTime = add_time(lastData, addTime)
 
-            if check_year(newTime):
+            if check_year(newTime, deadline_date):
                 if cond != loaded_dict_json["vaccination"][n[1]][cond][1]:
                     pass
                 else:
@@ -233,8 +235,7 @@ def date_person(id):
             else:
                 break
 
-    #print(date['date'])
-    slist = sorted(date['date'])
+    slist = sorted(date['date']) # сортировка
     date['date'] = slist[:]
     date['id'] = id
     #sort_mounth(date['date'])

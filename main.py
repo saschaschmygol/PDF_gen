@@ -157,6 +157,10 @@ class MainWindow(QMainWindow):
     def preview_notification(self):
         ''' Предпросмотр уведомления '''
 
+        deadline_date = self.ui.dateEdit.date()
+        lst_deadline = deadline_date.toString("yyyy-MM-dd")
+        deadline_date = datetime.datetime(int(lst_deadline.split('-')[0]), int(lst_deadline.split('-')[1]), int(lst_deadline.split('-')[2]))
+
         self.ui.tableWidget.setRowCount(0)
         self.ui.personInfoTable.setRowCount(0)
 
@@ -167,7 +171,8 @@ class MainWindow(QMainWindow):
             #print(lst_select_text[1])
             id = int(lst_select_text[1])
             print(f'id:  {id}')
-            date = date_person(id)
+
+            date = date_person(id, deadline_date) # рассчет данных
             print(date)
 
             row_pos_persinfo = self.ui.personInfoTable.rowCount()
