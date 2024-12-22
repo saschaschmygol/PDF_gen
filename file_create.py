@@ -78,7 +78,7 @@ def generate_pdf(date):
     doc.build(content) # Добавляем данные в документ
 
 if __name__== '__main__':
-    date = {'name': 'III ii ii', 'date': [['10-31-31', 'Дифтерия, столбняк']]}
+    date = {'name': 'III ii ii', 'date': [['10-31-31', 'Дифтерия, столбняк']], 'gender': 'м', 'id' : 5543}
     #date = data_person(1)
     #print(date)
     #date = date_person(1)

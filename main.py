@@ -91,7 +91,7 @@ class MainWindow(QMainWindow):
 
 
         select_text = self.ui.findPatients.currentText()
-        lst_select_text = select_text.split(' ') #разбиваем для выделения ID
+        lst_select_text = select_text.split(' ') # разбиваем для выделения ID
         if len(lst_select_text[0]) != 0:
             id = int(lst_select_text[1])
 
@@ -166,7 +166,6 @@ class MainWindow(QMainWindow):
 
         select_text = self.ui.findPatients.currentText()
         lst_select_text = select_text.split(' ') #разбиваем для выделения ID
-
         if len(lst_select_text[0]) != 0:
             #print(lst_select_text[1])
             id = int(lst_select_text[1])
@@ -220,4 +219,3 @@ if __name__ == "__main__":
     window.show()
 
     sys.exit(app.exec())
-

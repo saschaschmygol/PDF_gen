@@ -2,6 +2,113 @@ import sqlite3
 import datetime
 import json
 from pdf_settings_style import MONTH
+from collections import defaultdict
+
+# Функция для преобразования строковой даты в объект datetime
+def parse_date(date_str):
+    return datetime.datetime.strptime(date_str, "%Y-%m-%d")
+
+# Функция для преобразования объекта datetime в строку
+def format_date(date_obj):
+    return date_obj.strftime("%Y-%m-%d")
+
+# Функция для проверки и перераспределения прививок
+def process_vaccination_schedule(schedule):
+    # Сортируем по дате
+    schedule.sort(key=lambda x: parse_date(x[0]))
+
+    # Разбиваем прививки по типам
+    type_dict = defaultdict(list)
+    date_dict = defaultdict(list)
+    for date, vaccine_type, vaccine_category in schedule:
+        date_format = parse_date(date)
+
+        type_dict[vaccine_type].append([date_format, vaccine_category])
+        date_dict[f"{date_format.year}-{date_format.month}"].append([vaccine_type, vaccine_category])
+
+    for i in range(0, len(schedule)*5):
+
+      for key_date, records in date_dict.items():
+        # break_flag = False
+        record = []
+        step_list = []
+        if len(records) > 3:
+          # break_flag = True
+          for i in range(0, len(records)):
+            if len(record) != 3 and records[i] not in record:
+              # print(records[i])
+              counter = 0
+              for j in range(0, len(records)):
+                if records[i] == records[j]:
+                  counter += 1
+              for k in range(0, counter):
+
+                record.append(records[i])
+
+            else:
+              step_list.append(records[i])
+
+          date_dict[key_date] = record
+          # print(record)
+          #  Обрабатываем step_list, находя дубликаты в других ключах и сдвигая их
+          for step_item in step_list:
+              for other_key, other_records in list(date_dict.items()):
+                  if other_key != key_date and step_item in other_records:
+                      date_dict[other_key].remove(step_item)
+
+                      # Вычисляем новый ключ (добавляем 1 месяц к найденному ключу)
+                      year, month = map(int, other_key.split('-'))
+                      new_month = month + 1
+                      new_year = year
+                      if new_month > 12:
+                          new_month = 1
+                          new_year += 1
+
+                      new_key_date = f"{new_year}-{new_month}"
+
+                        # Переносим step_item в новый ключ
+                      date_dict[new_key_date].append(step_item)
+
+          year, month = map(int, key_date.split('-'))
+          new_month = month + 1
+          new_year = year
+          if new_month > 12:
+              new_month = 1
+              new_year += 1
+
+          new_key_date = f"{new_year}-{new_month}"
+
+          date_dict[new_key_date].extend(step_list)
+          break
+
+      # if not break_flag:
+      #   break
+
+    return date_dict
+
+def update_schedule_with_keys(schedule, date_dict):
+    updated_schedule = []
+    for date, vaccine_type, vaccine_category in schedule:
+        date_obj = parse_date(date)
+
+        # Проверяем, есть ли такой тип вакцины в date_dict
+        for key, records in date_dict.items():
+            if [vaccine_type, vaccine_category] in records:
+                # Заменяем дату на ключ с сохранением дня
+
+                year, month = map(int, key.split('-'))
+                if month < 10:
+                  month = f"0{month}"
+
+                new_date = f"{year}-{month}-{date_obj.day}"
+                updated_schedule.append([new_date, vaccine_type, vaccine_category])
+                break
+
+    return sorted(updated_schedule)
+
+
+
+
 
 def mont_replace(date ):
     ''' ['2024-12-23', 'грипп', 'rv'] -> ['Ноябрь 2024'] '''
@@ -236,7 +343,11 @@ def date_person(id, deadline_date):
                 break
 
     slist = sorted(date['date']) # сортировка
-    date['date'] = slist[:]
+
+    processed_schedule = process_vaccination_schedule(slist)
+    updated_schedule = update_schedule_with_keys(slist, processed_schedule) # распределение по месяцам
+
+    date['date'] = updated_schedule[:]
     date['id'] = id
     #sort_mounth(date['date'])
     print(slist)
