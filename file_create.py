@@ -19,13 +19,14 @@ def format_date_table(s1, s2, date, TAB_PARAGRAPH_STYLE, KALEND_PO_EPIDEM_PAKAZ,
     lst_info = [['1' for i in range(len(col_widths))] for i in range(len(date['date']))]
     for i, n in enumerate(date['date']):
         lst_info[i][0] = n[0]
-        lst_info[i][1] = n[1] + '  (' + n[2] + ')'
-        lst_info[i][2] = REGION_KALENDAR[n[1]]
-        lst_info[i][3] = NATION_KALENDAR[n[1]]
-        lst_info[i][4] = KALEND_PO_EPIDEM_PAKAZ[n[1]]
+        lst_info[i][1] = rename_vaccine(n[1]) + '  (' + n[2] + ')' # с переименованием
+        lst_info[i][2] = REGION_KALENDAR[n[1]] if f"{n[1]}" in REGION_KALENDAR else ''
+        lst_info[i][3] = NATION_KALENDAR[n[1]] if f"{n[1]}" in NATION_KALENDAR else ''
+        lst_info[i][4] = KALEND_PO_EPIDEM_PAKAZ[n[1]] if f"{n[1]}" in KALEND_PO_EPIDEM_PAKAZ else ''
 
         if len(col_widths) == 6:
-            lst_info[i][5] = EPIDEM_NADSOR_GEPATIT_B[n[1]]
+            lst_info[i][5] = EPIDEM_NADSOR_GEPATIT_B[n[1]] if f"{n[1]}" in EPIDEM_NADSOR_GEPATIT_B else ''
+
 
     stroka_table_words = [[] for i in lst_info] # делаем стиль Paragraph
     for i, x in enumerate(lst_info):
@@ -71,6 +72,7 @@ def generate_pdf(date):
             a = Paragraph(n, TAB_PARAGRAPH_STYLE)
             stroka_table_words[i].append(a)
 
+
     stroka_top = [Paragraph(i, CUSTOM_PARAGRAPH_STYLE) for i in loaded_dict['text_top'][:]]
     stroka_bot = [Paragraph(i, SIGNATURE_PARAGRAPH_STYLE) for i in loaded_dict['text_bot']] # перед и после таблицы
     stroka_bot2 = [Paragraph(i, CUSTOM_PARAGRAPH_STYLE) for i in loaded_dict['text_bot2']]  # перед и после таблицы
@@ -88,7 +90,7 @@ def generate_pdf(date):
     doc.build(content) # Добавляем данные в документ
 
 if __name__== '__main__':
-    date = {'name': 'III ii ii', 'date': [['10-31-31', 'Гепатит А', 'rv']], 'gender': 'м', 'id' : 5543}
+    date = {'name': 'III ii ii', 'date': [['10-31-31', 'НКВИ', 'rv']], 'gender': 'м', 'id' : 5543}
     #date = data_person(1)
     #print(date)
     #date = date_person(1)
