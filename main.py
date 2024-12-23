@@ -12,6 +12,7 @@ from ui_mainwindow import Ui_MainWindow
 from file_create import generate_pdf
 from file_db import date_person, searсh_men, mont_replace
 from read_exel import process_excel_to_sqlite
+from pdf_settings_style import rename_vaccine
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -63,16 +64,22 @@ class MainWindow(QMainWindow):
         for row in range(rows):
             row_data = []
             for col in range(cols):
-                # Получаем элемент таблицы
+                print(row_data)
                 item = self.ui.tableWidget.item(row, col)
                 # Проверяем, что ячейка не пустая
                 if item is not None:
-                    row_data.append(item.text()) #['', '', '']
+                    if col == 1:
+                        row_data.append(rename_vaccine(item.text())) #['', '', '']
+                    elif col == 0:
+                        dat_lst = item.text().split('-')
+                        row_data.append(str(f"{dat_lst[2]}-{dat_lst[1]}-{dat_lst[0]}"))
+                    else:
+                        row_data.append(item.text())
                 else:
                     row_data.append("")  # Если пустая, добавляем пустую строку
             table_data.append(row_data)  #[[''''], [''''], [''''], ]
 
-        #print(table_data)
+        #print(f"Данные таблицы {table_data}")
 
         rows = self.ui.personInfoTable.rowCount()
         cols = self.ui.personInfoTable.columnCount()
@@ -107,6 +114,7 @@ class MainWindow(QMainWindow):
         # Печатаем данные таблицы
         # print(table_data)
         # print(table_data_pers)
+
         data['name'] = table_data_pers[0][0] + ' ' + table_data_pers[0][1] + ' ' +  table_data_pers[0][2]
         for dat in table_data:
             data['date'].append(dat)
@@ -114,7 +122,7 @@ class MainWindow(QMainWindow):
         data['date'] = norm_dat[:]
         data['id'] = id
         data['gender'] = gender
-        print(data)
+        print(f"перед генерацией {data}")
 
         #print(data)
         #print(norm_dat)
@@ -172,7 +180,7 @@ class MainWindow(QMainWindow):
             print(f'id:  {id}')
 
             date = date_person(id, deadline_date) # рассчет данных
-            print(date)
+            #print(date)
 
             row_pos_persinfo = self.ui.personInfoTable.rowCount()
             self.ui.personInfoTable.insertRow(row_pos_persinfo)
@@ -187,7 +195,13 @@ class MainWindow(QMainWindow):
                 row_pos_vacinfo = self.ui.tableWidget.rowCount()
                 self.ui.tableWidget.insertRow(row_pos_vacinfo)
                 for column, value in enumerate(row_data[:]):
-                    self.ui.tableWidget.setItem(row_pos_vacinfo, column, QTableWidgetItem(value))
+                    if column == 0:
+                       dat_lst = value.split('-')
+                       self.ui.tableWidget.setItem(row_pos_vacinfo, column, QTableWidgetItem(str(f"{dat_lst[2]}-{dat_lst[1]}-{dat_lst[0]}")))
+                    elif column == 1:
+                        self.ui.tableWidget.setItem(row_pos_vacinfo, column, QTableWidgetItem(rename_vaccine(value)))
+                    else:
+                        self.ui.tableWidget.setItem(row_pos_vacinfo, column, QTableWidgetItem(value))
 
 
     def tab_load(self):

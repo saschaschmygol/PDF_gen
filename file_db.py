@@ -189,7 +189,7 @@ def check_year(date, deadline_date):
     month = int(lst_data[1])
     day = int(lst_data[2])
     custom_date = datetime.datetime(year, month, day)
-    if custom_date > deadline_date :
+    if custom_date > deadline_date:
         return False
     else:
         return True

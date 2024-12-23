@@ -12,7 +12,7 @@ def generate_str_vac(date):
 
     for i, n in enumerate(date['date']):
         if n and n not in str_vac:
-            str_vac.append(n[1])
+            str_vac.append(rename_vaccine(n[1]))
         else:
             pass
 
@@ -100,6 +100,8 @@ def rename_vaccine(data):
     rename_dict = {'НКВИ': 'COVID-19', 'COVID-19': 'НКВИ'}
     if data in rename_dict:
         return rename_dict[data]
+    else:
+        return data
     # if flag == 1:
     #     for i, d in enumerate(curr_dat):
     #         if d[1] in rename_dict:
