@@ -7,17 +7,21 @@ def cm_to_points(cm: float):
     return cm * 28.3464567  # 1 cm = 28.3464567 points
 
 def generate_str_vac(date):
-    '''Генерация списка требуемых прививок в начале странпицы'''
+    ''' Генерация списка требуемых прививок в начале странпицы
+    n = ['10-31-2031', 'НКВИ', 'rv'] '''
     str_vac = []
-
+    print(date)
     for i, n in enumerate(date['date']):
-        if n and n not in str_vac:
-            str_vac.append(rename_vaccine(n[1]))
+        if n[1] and n[1] not in str_vac:
+            str_vac.append(n[1])
         else:
             pass
 
-    str_vac =  list(set(str_vac))
-    str_vac = ' ; '.join(str_vac)
+    # назначение имён вакцинам
+    for i, n in enumerate(str_vac):
+        str_vac[i] = rename_vaccine(n)
+
+    str_vac = ' ; '.join(str_vac) # преобразуем к строке
 
     return str_vac
 
@@ -91,20 +95,12 @@ MONTH = {'01': 'Январь', '02': 'Февраль', '03': 'Март', '04': '
 
 MONTHS = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
 
+RENAME_DICT = {'gripp': 'Грипп', 'sonneDysentery': 'Дизентерия Зонне', 'cleshEncephalit': 'Клещевой энцефалит',
+               'nkwi': 'COVID-19', 'measles': 'Корь', 'rubella': 'Краснуха', 'diphteriaTetanus': 'Дифтерия, столбняк',
+               'hepatitisA': 'Гепатит А', 'hepatitisB': 'Гепатит B', 'pertussis': 'Коклюш', 'chickenPox': 'Ветряная оспа',
+               'pneumococcalInfection': 'Пневмококковая инфекция'}
+
 def rename_vaccine(data):
-
-    # print(1)
-    ''' Временная функция, flag=1 - из НКВИ в COVID19, 0 - наоборот
-    # [['2121-21-21, 'Грипп'm 'RV'], ] '''
-    # curr_dat = data[:]
-    rename_dict = {'НКВИ': 'COVID-19', 'COVID-19': 'НКВИ'}
-    if data in rename_dict:
-        return rename_dict[data]
-    else:
-        return data
-    # if flag == 1:
-    #     for i, d in enumerate(curr_dat):
-    #         if d[1] in rename_dict:
-    #             curr_dat[i][1] = rename_dict[d[1]]
-    # print(curr_dat)
-
+    ''' переводим названия в читаемый вид'''
+    ren_vac = RENAME_DICT.get(data, '-')
+    return ren_vac

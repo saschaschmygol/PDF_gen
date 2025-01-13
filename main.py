@@ -149,7 +149,7 @@ class MainWindow(QMainWindow):
 
         try:
             result_request = searсh_men(personInfo) # получение персональной информации в формате [('', '', '', '', ''), ()]
-            #print(result_request)
+            print(result_request)
             if result_request != False:
                 for result in result_request:
                     self.ui.findPatients.addItem(f"id: {result[0]} {result[1]} {result[2]}"

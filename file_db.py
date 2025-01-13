@@ -121,14 +121,14 @@ def mont_replace(date ):
 
 def searсh_men(personInfo: list):
     ''' Проверка наличия пациента в базе '''
-    request_bd = ["S.Имя =  '", "S.Фамилия = '", "S.Отчество = '"] # для поиска по набору параметров Ф_И_О
+    request_bd = ["S.name =  '", "S.firstname = '", "S.lastname = '"] # для поиска по набору параметров Ф_И_О
     str_pers_info = ''
 
     if any(personInfo): # если список не пустой
         for i, n in enumerate(personInfo):
-            if  personInfo[i] != '':
+            if personInfo[i] != '':
                 if str_pers_info == '':
-                    str_pers_info +=  f"{request_bd[i]}{personInfo[i]}'"
+                    str_pers_info += f"{request_bd[i]}{personInfo[i]}'"
                 else:
                     str_pers_info += f" AND {request_bd[i]}{personInfo[i]}'"
     else:
@@ -136,9 +136,9 @@ def searсh_men(personInfo: list):
 
     #print(str_pers_info)
 
-    conn = sqlite3.connect('1.db')
+    conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    cursor.execute(f"SELECT S.ID, S.Имя, S.Фамилия, S.Отчество, S.Дата_Рождения FROM Сотрудник as S WHERE ({str_pers_info});")
+    cursor.execute(f"SELECT S.ID, S.name, S.firstname, S.lastname, S.dateOfBirth FROM worker as S WHERE ({str_pers_info});")
     rows = cursor.fetchall()
 
     if len(rows) == 0:
@@ -188,6 +188,7 @@ def check_year(date, deadline_date):
     year = int(lst_data[0])
     month = int(lst_data[1])
     day = int(lst_data[2])
+
     custom_date = datetime.datetime(year, month, day)
     if custom_date > deadline_date:
         return False
