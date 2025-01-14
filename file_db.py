@@ -300,15 +300,19 @@ def date_person(id, deadline_date):
             newTime = add_time(lastData, addTime)
 
             if check_year(newTime, deadline_date):
-                if cond != loaded_dict_json["vaccination"][n[1]][cond][1]:
+                print(123)
+                if cond != loaded_dict_json["vaccination"][n[1]][cond][1]: # это условие переделать
                     pass
                 else:
                     break
 
+                print(1)
                 if cond == 'k': #если выполнен последний этап - останавливаемся
                     break # ТУТ ЧТО ТО НЕ ТАК
+                print(1)
 
                 date['date'].append([newTime, n[1], loaded_dict_json["vaccination"][n[1]][cond][1]])
+                #print([newTime, n[1], loaded_dict_json["vaccination"][n[1]][cond][1]])
                 cond = loaded_dict_json["vaccination"][n[1]][cond][1]
                 lastData = newTime
 
@@ -321,9 +325,13 @@ def date_person(id, deadline_date):
     #updated_schedule = update_schedule_with_keys(slist, processed_schedule) # распределение по месяцам
 
     #date['date'] = updated_schedule[:]
+    date['date'] = slist
     date['id'] = id
     #sort_mounth(date['date'])
     print(date['date'])
+
+    # for i in date['date']:
+    #     print(i[1])
 
     return date
 
