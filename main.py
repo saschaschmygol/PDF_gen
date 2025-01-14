@@ -180,7 +180,8 @@ class MainWindow(QMainWindow):
             id = int(lst_select_text[1])
 
             date = date_person(id, deadline_date) # рассчет данных (id и до какой даты (формат класса datetime))
-            #print(date)
+            print('-----')
+            print(date)
 
             row_pos_persinfo = self.ui.personInfoTable.rowCount() # получаем количество строк
             self.ui.personInfoTable.insertRow(row_pos_persinfo) # вставляем новую строку
