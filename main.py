@@ -1,16 +1,18 @@
 import sys
 import sqlite3
+import traceback
+import datetime
 
 #from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QAbstractItemView, QFileDialog, QTableWidgetItem, \
     QTableWidget, QTextEdit
 from PySide6.QtCore import Slot, QDate, Qt
-import traceback
-import datetime
 
 from ui_mainwindow import Ui_MainWindow
 from file_create import generate_pdf
-from file_db import date_person, searсh_men, mont_replace
+from file_db import date_person, mont_replace
+from app_func_logic import searсh_men
+
 from read_exel import process_excel_to_sqlite
 from pdf_settings_style import rename_vaccine
 
@@ -64,7 +66,7 @@ class MainWindow(QMainWindow):
         for row in range(rows):
             row_data = []
             for col in range(cols):
-                print(row_data)
+                #print(row_data)
                 item = self.ui.tableWidget.item(row, col)
                 # Проверяем, что ячейка не пустая
                 if item is not None:
@@ -145,11 +147,9 @@ class MainWindow(QMainWindow):
         lname = self.ui.surnameTextField.toPlainText()
         personInfo = [str(name).strip(), str(fname).strip(), str(lname).strip()] # список для sql запроса
 
-        #print(personInfo)
-
         try:
             result_request = searсh_men(personInfo) # получение персональной информации в формате [('', '', '', '', ''), ()]
-            print(result_request)
+            #print(result_request)
             if result_request != False:
                 for result in result_request:
                     self.ui.findPatients.addItem(f"id: {result[0]} {result[1]} {result[2]}"
@@ -165,25 +165,26 @@ class MainWindow(QMainWindow):
     def preview_notification(self):
         ''' Предпросмотр уведомления '''
 
-        deadline_date = self.ui.dateEdit.date()
+        deadline_date = self.ui.dateEdit.date() # получаем дату из dateEdit и приводим к формату
         lst_deadline = deadline_date.toString("yyyy-MM-dd")
         deadline_date = datetime.datetime(int(lst_deadline.split('-')[0]), int(lst_deadline.split('-')[1]), int(lst_deadline.split('-')[2]))
 
         self.ui.tableWidget.setRowCount(0)
         self.ui.personInfoTable.setRowCount(0)
 
-        select_text = self.ui.findPatients.currentText()
-        lst_select_text = select_text.split(' ') #разбиваем для выделения ID
+        select_text = self.ui.findPatients.currentText() # строка из findPatients
+        lst_select_text = select_text.split(' ') # разбиваем для выделения ID
+
         if len(lst_select_text[0]) != 0:
             #print(lst_select_text[1])
             id = int(lst_select_text[1])
-            print(f'id:  {id}')
 
-            date = date_person(id, deadline_date) # рассчет данных
+            date = date_person(id, deadline_date) # рассчет данных (id и до какой даты (формат класса datetime))
             #print(date)
 
-            row_pos_persinfo = self.ui.personInfoTable.rowCount()
-            self.ui.personInfoTable.insertRow(row_pos_persinfo)
+            row_pos_persinfo = self.ui.personInfoTable.rowCount() # получаем количество строк
+            self.ui.personInfoTable.insertRow(row_pos_persinfo) # вставляем новую строку
+
             for column, value in enumerate(date['name'].split(' ')):
                 self.ui.personInfoTable.setItem(row_pos_persinfo, column, QTableWidgetItem(value))
 
@@ -194,6 +195,7 @@ class MainWindow(QMainWindow):
             for row_data in date['date']:
                 row_pos_vacinfo = self.ui.tableWidget.rowCount()
                 self.ui.tableWidget.insertRow(row_pos_vacinfo)
+
                 for column, value in enumerate(row_data[:]):
                     if column == 0:
                        dat_lst = value.split('-')

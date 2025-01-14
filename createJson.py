@@ -38,11 +38,26 @@ text_bot2 = ['Дополнительную информацию, что в со�
 
 keys_list = ['table_header', 'text_top', 'text_bot', 'text_bot2']
 values_list = [table_header, text_top, text_bot, text_bot2]
+keys_list_areaOfWork = ['medical', 'nonMedical', 'foodService', 'utilityService']
+
+areaOfWork = {'medical': ['gripp', 'cleshEncephalit', 'nkwi', 'measles', 'rubella', 'diphteriaTetanus', 'hepatitisB',
+                          'pneumococcalInfection', 'hepatitisA', 'pertussis', 'chickenPox'],
+              'nonMedical': ['gripp', 'cleshEncephalit', 'nkwi', 'measles', 'rubella', 'diphteriaTetanus', 'hepatitisB',
+                          'pneumococcalInfection', 'pertussis'],
+              'foodService': ['gripp', 'cleshEncephalit', 'nkwi', 'measles', 'rubella', 'diphteriaTetanus', 'hepatitisB',
+                          'pneumococcalInfection', 'hepatitisA', 'pertussis', 'sonneDysentery'],
+              'utilityService': ['gripp', 'cleshEncephalit', 'nkwi', 'measles', 'rubella', 'diphteriaTetanus', 'hepatitisB',
+                          'pneumococcalInfection', 'pertussis', 'hepatitisA']}
 
 with open('data_dict.json', 'r', encoding='utf-8') as f:
     loaded_dict = json.load(f)  # словарь
-    for i in range(len(keys_list)):
+
+    for i in range(len(keys_list)): # обновление строчек
         loaded_dict[keys_list[i]] = values_list[i]
+
+    loaded_dict["scope_work"] = {} # обновления списка scope_work
+    for i in range(len(keys_list_areaOfWork)):
+        loaded_dict["scope_work"][keys_list_areaOfWork[i]] =  areaOfWork[keys_list_areaOfWork[i]]
 
 with open('data_dict.json', 'w', encoding='utf-8') as f:
     json.dump(loaded_dict, f, ensure_ascii=False, indent=4)

@@ -10,8 +10,8 @@ from file_db import date_person
 import json
 import os
 
-pdfmetrics.registerFont(TTFont('Times', 'timesnewromanpsmt.ttf'))
-pdfmetrics.registerFont(TTFont('TimesBold', 'TimesNewRomanBold.ttf'))
+pdfmetrics.registerFont(TTFont('Times', './fonts/timesnewromanpsmt.ttf'))
+pdfmetrics.registerFont(TTFont('TimesBold', './fonts/TimesNewRomanBold.ttf'))
 
 def format_date_table(s1, s2, date, TAB_PARAGRAPH_STYLE, KALEND_PO_EPIDEM_PAKAZ, NATION_KALENDAR, REGION_KALENDAR, col_widths):
     ''' Создание списка данных для заполнения таблицы #->список [['', ''], ['', ''], [''..]] '''

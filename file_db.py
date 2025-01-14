@@ -118,35 +118,6 @@ def mont_replace(date ):
 
     return duplicat_date
 
-
-def searсh_men(personInfo: list):
-    ''' Проверка наличия пациента в базе '''
-    request_bd = ["S.name =  '", "S.firstname = '", "S.lastname = '"] # для поиска по набору параметров Ф_И_О
-    str_pers_info = ''
-
-    if any(personInfo): # если список не пустой
-        for i, n in enumerate(personInfo):
-            if personInfo[i] != '':
-                if str_pers_info == '':
-                    str_pers_info += f"{request_bd[i]}{personInfo[i]}'"
-                else:
-                    str_pers_info += f" AND {request_bd[i]}{personInfo[i]}'"
-    else:
-        str_pers_info = 'false'
-
-    #print(str_pers_info)
-
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-    cursor.execute(f"SELECT S.ID, S.name, S.firstname, S.lastname, S.dateOfBirth FROM worker as S WHERE ({str_pers_info});")
-    rows = cursor.fetchall()
-
-    if len(rows) == 0:
-        return False
-    else:
-        return rows
-
-
 def update_json_scope_work(filename, fileDB):
     ''' Обновление json сферы работы rows = ([], [], []) - [] строка запроса '''
     conn = sqlite3.connect(fileDB)
@@ -221,19 +192,19 @@ def date_person(id, deadline_date):
     with open('data_dict.json', 'r', encoding='utf-8') as f:
         loaded_dict_json = json.load(f) # словарь
 
-    conn = sqlite3.connect('1.db')
+    conn = sqlite3.connect('database.db')
     age = 0
     gender = "" # переменные под пол и возраст
-    date = {'name': None, 'date': []}
+    date = {'name': None, 'date': [], 'id': None, 'gendedr': None}
 
     # обновляем словарь сферы работы json
     cursor = conn.cursor()
     # cursor.execute(f"SELECT S.name, S.vac_1, S.vac_2, S.vac_3, S.vac_4, S.vac_5, S.vac_6, S.vac_7, S.vac_8, S.vac_9, S.vac_10, S.vac_11, S.vac_12 FROM Сфера_Работы as S")
     # rows = cursor.fetchall()
-    update_json_scope_work('data_dict.json', '1.db')
+    #update_json_scope_work('data_dict.json', '1.db')
 
     # Получение персональных данных
-    cursor.execute(f"SELECT S.Имя, S.Фамилия, S.Отчество, S.Пол, S.Дата_Рождения FROM Сотрудник as S WHERE S.ID = {id};")
+    cursor.execute(f"SELECT S.name, S.firstname, S.lastname, S.gender, S.dateOfBirth FROM worker as S WHERE S.ID = {id};")
     rows = cursor.fetchall()
     pers_info = rows
 
@@ -243,53 +214,54 @@ def date_person(id, deadline_date):
     print(age, date['name'], gender)
 
     #Получение должности и подразделения
-    cursor.execute(f"SELECT Д.name, Д.Подразделение FROM Должность as Д WHERE Д.ID = (SELECT S.Должность_Сотрудника FROM Сотрудник as S WHERE ID={id})")
+    cursor.execute(f"SELECT P.name, P.division FROM position as P WHERE P.ID = (SELECT W.position FROM worker as W WHERE ID={id})")
     rows = cursor.fetchall()
     pers_info_d = rows
     date['post_division'] = [pers_info_d[0][0], pers_info_d[0][1]]
+    print(date['post_division'])
 
     #Получение сферы работы пациента
-    cursor.execute(f"SELECT S.Сфера_Работы FROM Должность as S WHERE S.ID = (SELECT Сотрудник.Должность_Сотрудника FROM Сотрудник WHERE Сотрудник.ID={id});")
+    cursor.execute(f"SELECT P.areaOfWork FROM position as P WHERE P.ID = (SELECT worker.position FROM worker WHERE worker.ID={id});")
     rows = cursor.fetchall()
     scope_of_work = rows[0][0]
     print(scope_of_work)
 
     # Получение необходимых вакцин по должности
     vaccineListScope = loaded_dict_json["scope_work"][scope_of_work]
-    if "Коклюш" in vaccineListScope:
-        vaccineListScope.remove('Коклюш')
+    if "pertussis" in vaccineListScope:
+        vaccineListScope.remove('pertussis')
     print(vaccineListScope)
 
     # получение списка последних вакцин в соответствии со списком по должности
     strVaccineList = ", ".join([f" '{str(vac)}'" for vac in vaccineListScope])
-    cursor.execute(f"SELECT MAX(Вакцинация.Дата) as Дата, Вакцинация.Название_Прививки, Вакцинация.Тип FROM Вакцинация  GROUP BY Вакцинация.ID_Сотрудника, Вакцинация.Название_Прививки HAVING Вакцинация.ID_Сотрудника = {id} AND Название_Прививки IN({strVaccineList});")
+    cursor.execute(f"SELECT MAX(immunization.date) as date, immunization.vaccination, immunization.type FROM immunization GROUP BY immunization.workerID, immunization.vaccination HAVING immunization.workerID = {id} AND immunization.vaccination IN({strVaccineList});")
     rows = cursor.fetchall()
     lastVacList = rows
     print(f" Раньше велась {lastVacList}")
 
     # Валидация списка по возрасту и полу
-    if gender != "Ж" or age > 25:# краснуха
+    if gender != "w" or age > 25:# краснуха
         try:
-            vaccineListScope.remove('Краснуха')
+            vaccineListScope.remove('rubella')
         except Exception:
             pass
 
-    if scope_of_work != 'Медик' and age >= 55: # гепатит B
+    if scope_of_work != 'medical' and age >= 55: # гепатит B
         try:
-            vaccineListScope.remove('Гепатит B')
+            vaccineListScope.remove('hepatitisB')
         except Exception:
             pass
 
-    if scope_of_work != 'Медик' and age <= 60: # Пневмококковая инфекция
+    if scope_of_work != 'medical' and age <= 60: # Пневмококковая инфекция
         try:
-            vaccineListScope.remove('Пневмококковая инфекция')
+            vaccineListScope.remove('pneumococcalInfection')
         except Exception:
             pass
 
     # если раньше не велась вакцинация
     alt_lst = [i[1] for i in lastVacList] #в виде списка те, которые велись
     new_lst_vac_work = list(set(vaccineListScope) - set(alt_lst)) #список прививок для которых нужно начать схему вакцинации
-    #print(new_lst_vac_work)
+    print(new_lst_vac_work)
 
     for i, n in enumerate(new_lst_vac_work):
         cond = '0' #начальное состояние прививки
@@ -345,16 +317,16 @@ def date_person(id, deadline_date):
 
     slist = sorted(date['date']) # сортировка
 
-    processed_schedule = process_vaccination_schedule(slist)
-    updated_schedule = update_schedule_with_keys(slist, processed_schedule) # распределение по месяцам
+    #processed_schedule = process_vaccination_schedule(slist)
+    #updated_schedule = update_schedule_with_keys(slist, processed_schedule) # распределение по месяцам
 
-    date['date'] = updated_schedule[:]
+    #date['date'] = updated_schedule[:]
     date['id'] = id
     #sort_mounth(date['date'])
-    print(slist)
+    print(date['date'])
 
     return date
 
-#date_person(1)
+date_person(1, datetime.datetime(2026, 1, 15))
 
 #update_json_scope_work('data_dict.json', '1.db')
