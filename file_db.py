@@ -226,9 +226,19 @@ def date_person(id, deadline_date):
 
     # Получение необходимых вакцин по должности
     vaccineListScope = loaded_dict_json["scope_work"][scope_of_work]
+
     if "pertussis" in vaccineListScope:
         vaccineListScope.remove('pertussis')
     print(vaccineListScope)
+
+    if 'hepatitisB' in vaccineListScope:
+        cursor.execute(
+            f"SELECT A.value FROM indicatorAntiHBs as A WHERE A.workerID == {id};")
+        rows = cursor.fetchall()
+        print(f"gip B {rows}")
+        if len(list(rows)) != 0:
+            if list(rows)[0][0] == '' or int(list(rows)[0][0]) > 10:
+                vaccineListScope.remove('hepatitisB')
 
     # получение списка последних вакцин в соответствии со списком по должности
     strVaccineList = ", ".join([f" '{str(vac)}'" for vac in vaccineListScope])
@@ -236,6 +246,7 @@ def date_person(id, deadline_date):
     rows = cursor.fetchall()
     lastVacList = rows
     print(f" Раньше велась {lastVacList}")
+
 
     # Валидация списка по возрасту и полу
     if gender != "w" or age > 25:# краснуха
@@ -259,7 +270,7 @@ def date_person(id, deadline_date):
     # если раньше не велась вакцинация
     alt_lst = [i[1] for i in lastVacList] #в виде списка те, которые велись
     new_lst_vac_work = list(set(vaccineListScope) - set(alt_lst)) #список прививок для которых нужно начать схему вакцинации
-    print(new_lst_vac_work)
+    print(f"нужно начать {new_lst_vac_work}")
 
     for i, n in enumerate(new_lst_vac_work):
         cond = '0' #начальное состояние прививки
@@ -296,6 +307,7 @@ def date_person(id, deadline_date):
             #print(f'{loaded_dict_json["vaccination"][n[1]][cond][0]}')
             addTime = loaded_dict_json["vaccination"][n[1]][cond][0]
             newTime = add_time(lastData, addTime)
+            print(f"newtime {n[1]} {newTime}")
 
             if check_year(newTime, deadline_date):
                 if cond != loaded_dict_json["vaccination"][n[1]][cond][1] or (cond == loaded_dict_json["vaccination"][n[1]][cond][1] == 'v'): # это условие переделать
@@ -316,11 +328,11 @@ def date_person(id, deadline_date):
 
     slist = sorted(date['date']) # сортировка
 
-    #processed_schedule = process_vaccination_schedule(slist)
-    #updated_schedule = update_schedule_with_keys(slist, processed_schedule) # распределение по месяцам
+    processed_schedule = process_vaccination_schedule(slist)
+    updated_schedule = update_schedule_with_keys(slist, processed_schedule) # распределение по месяцам
 
-    #date['date'] = updated_schedule[:]
-    date['date'] = slist
+    date['date'] = updated_schedule[:]
+    #date['date'] = slist
     date['id'] = id
     #sort_mounth(date['date'])
     print(date['date'])
@@ -330,6 +342,6 @@ def date_person(id, deadline_date):
 
     return date
 
-#date_person(1, datetime.datetime(2026, 1, 15))
+#date_person(348, datetime.datetime(2026, 1, 15))
 
 #update_json_scope_work('data_dict.json', '1.db')

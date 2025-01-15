@@ -18,13 +18,13 @@ def searсh_men(personInfo: list):
     else:
         str_pers_info = 'false'
 
-    #print(str_pers_info)
+    print(str_pers_info)
 
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     cursor.execute(f"SELECT S.ID, S.name, S.firstname, S.lastname, S.dateOfBirth FROM worker as S WHERE ({str_pers_info});")
     rows = cursor.fetchall()
-
+    print(rows)
     if len(rows) == 0:
         return False
     else:
