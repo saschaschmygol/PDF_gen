@@ -78,17 +78,17 @@ SIGNATURE_PARAGRAPH_STYLE = ParagraphStyle(
     rightIndent=cm_to_points(0)  # Отступ справа
 )
 
-KALEND_PO_EPIDEM_PAKAZ = {'Гепатит А': 'П.12', 'Гепатит B': 'П.16', 'Клещевой энцефалит': 'П.7',
-                          'Дизентерия Зонне': 'П.13', 'НКВИ': 'П.24',
-                          'Ветряная оспа': 'П.22', 'Пневмококковая инфекция': 'П.20'}
+KALEND_PO_EPIDEM_PAKAZ = {'hepatitisA': 'П.12', 'hepatitisB': 'П.16', 'cleshEncephalit': 'П.7',
+                          'sonneDysentery': 'П.13', 'nkwi': 'П.24',
+                          'chickenPox': 'П.22', 'pneumococcalInfection': 'П.20'}
 
-NATION_KALENDAR = {'Гепатит B': 'П.16', 'Дифтерия, столбняк': 'П.15',  'Краснуха': 'П.17', 'Грипп': 'П.19', 'Корь': 'П.18'}
+NATION_KALENDAR = {'hepatitisB': 'П.16', 'diphteriaTetanus': 'П.15',  'rubella': 'П.17', 'gripp': 'П.19', 'measles': 'П.18'}
 
-REGION_KALENDAR = {'Гепатит А': 'П.38', 'Гепатит B': 'П.21', 'Дифтерия, столбняк': 'П.20', 'Клещевой энцефалит': 'П.32',
-                          'Краснуха': '22', 'Дизентерия Зонне': 'П.40,41', 'Грипп': 'П.24', 'НКВИ': 'П.25', 'Корь': '23', 'Коклюш': 'П.49',
-                          'Ветряная оспа': 'П.47', 'Пневмококковая инфекция': 'П.44,45'}
+REGION_KALENDAR = {'hepatitisA': 'П.38', 'hepatitisB': 'П.21', 'diphteriaTetanus': 'П.20', 'cleshEncephalit': 'П.32',
+                          'rubella': '22', 'sonneDysentery': 'П.40,41', 'gripp': 'П.24', 'nkwi': 'П.25', 'measles': '23', 'pertussis': 'П.49',
+                          'chickenPox': 'П.47', 'pneumococcalInfection': 'П.44,45'}
 
-EPIDEM_NADSOR_GEPATIT_B = {'Гепатит B': 'П.11, 11.2, 11.4'}
+EPIDEM_NADSOR_GEPATIT_B = {'hepatitisB': 'П.11, 11.2, 11.4'}
 
 MONTH = {'01': 'Январь', '02': 'Февраль', '03': 'Март', '04': 'Апрель', '05': 'Май', '06': 'Июнь', '07': 'Июль',
          '08': 'Август', '09': 'Сентябрь', '10': 'Октябрь', '11': 'Ноябрь', '12': 'Декабрь', }

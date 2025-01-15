@@ -52,7 +52,7 @@ def generate_pdf(date):
         loaded_dict = json.load(f)
 
     col_widths = [cm_to_points(1.9), cm_to_points(3), cm_to_points(4.5), cm_to_points(4.7),
-                  cm_to_points(4.5)] if 'Гепатит B' not in [n[1] for n in date['date']] else [cm_to_points(1.9), cm_to_points(3), cm_to_points(4.5), cm_to_points(3.5),
+                  cm_to_points(4.5)] if 'hepatitisB' not in [n[1] for n in date['date']] else [cm_to_points(1.9), cm_to_points(3), cm_to_points(4.5), cm_to_points(3.5),
                   cm_to_points(3.5), cm_to_points(3.0)]  # ширина колонок
 
     loaded_dict['text_top'][1] += 'ый ' if date['gender'] == 'м' else 'ая '
@@ -89,10 +89,10 @@ def generate_pdf(date):
 
     doc.build(content) # Добавляем данные в документ
 
-if __name__== '__main__':
-    date = {'name': 'III ii ii', 'date': [['10-31-2031', 'НКВИ', 'rv'], ['10-31-2031', 'Грипп', 'rv'],
-                                          ['10-31-2031', 'Грипп', 'rv']], 'gender': 'м', 'id': 5543}
-    #date = data_person(1)
-    #print(date)
-    #date = date_person(1)
-    generate_pdf(date)
+# if __name__== '__main__':
+#     date = {'name': 'III ii ii', 'date': [['10-31-2031', 'НКВИ', 'rv'], ['10-31-2031', 'Грипп', 'rv'],
+#                                           ['10-31-2031', 'Грипп', 'rv']], 'gender': 'м', 'id': 5543}
+#     #date = data_person(1)
+#     #print(date)
+#     #date = date_person(1)
+#     generate_pdf(date)

@@ -107,9 +107,6 @@ def update_schedule_with_keys(schedule, date_dict):
     return sorted(updated_schedule)
 
 
-
-
-
 def mont_replace(date ):
     ''' ['2024-12-23', 'грипп', 'rv'] -> ['Ноябрь 2024'] '''
     duplicat_date = date[:]
@@ -212,6 +209,7 @@ def date_person(id, deadline_date):
     date['name'] = pers_info[0][1] + ' ' + pers_info[0][0] + ' ' + pers_info[0][2]  # формируем имя в строку
     gender = pers_info[0][3]
     print(age, date['name'], gender)
+    date['gender'] = gender
 
     #Получение должности и подразделения
     cursor.execute(f"SELECT P.name, P.division FROM position as P WHERE P.ID = (SELECT W.position FROM worker as W WHERE ID={id})")
@@ -294,22 +292,19 @@ def date_person(id, deadline_date):
         lastData = n[0] #последняя дата прививки
 
         while True:
-            print(f"cond {cond}  {n[1]}")
-            print(f'{loaded_dict_json["vaccination"][n[1]][cond][0]}')
+            #print(f"cond {cond}  {n[1]}")
+            #print(f'{loaded_dict_json["vaccination"][n[1]][cond][0]}')
             addTime = loaded_dict_json["vaccination"][n[1]][cond][0]
             newTime = add_time(lastData, addTime)
 
             if check_year(newTime, deadline_date):
-                print(123)
-                if cond != loaded_dict_json["vaccination"][n[1]][cond][1]: # это условие переделать
+                if cond != loaded_dict_json["vaccination"][n[1]][cond][1] or (cond == loaded_dict_json["vaccination"][n[1]][cond][1] == 'v'): # это условие переделать
                     pass
                 else:
                     break
 
-                print(1)
                 if cond == 'k': #если выполнен последний этап - останавливаемся
                     break # ТУТ ЧТО ТО НЕ ТАК
-                print(1)
 
                 date['date'].append([newTime, n[1], loaded_dict_json["vaccination"][n[1]][cond][1]])
                 #print([newTime, n[1], loaded_dict_json["vaccination"][n[1]][cond][1]])
@@ -335,6 +330,6 @@ def date_person(id, deadline_date):
 
     return date
 
-date_person(1, datetime.datetime(2026, 1, 15))
+#date_person(1, datetime.datetime(2026, 1, 15))
 
 #update_json_scope_work('data_dict.json', '1.db')

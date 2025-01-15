@@ -10,11 +10,11 @@ from PySide6.QtCore import Slot, QDate, Qt
 
 from ui_mainwindow import Ui_MainWindow
 from file_create import generate_pdf
-from file_db import date_person, mont_replace
-from app_func_logic import searсh_men
+from file_db import date_person
+from app_func_logic import searсh_men, mont_replace, rename_vaccine, rename_vaccine_R
 
 from read_exel import process_excel_to_sqlite
-from pdf_settings_style import rename_vaccine
+#from pdf_settings_style import rename_vaccine
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -71,7 +71,7 @@ class MainWindow(QMainWindow):
                 # Проверяем, что ячейка не пустая
                 if item is not None:
                     if col == 1:
-                        row_data.append(rename_vaccine(item.text())) #['', '', '']
+                        row_data.append(rename_vaccine_R(item.text())) #['', '', '']
                     elif col == 0:
                         dat_lst = item.text().split('-')
                         row_data.append(str(f"{dat_lst[2]}-{dat_lst[1]}-{dat_lst[0]}"))
@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
                     row_data.append("")  # Если пустая, добавляем пустую строку
             table_data.append(row_data)  #[[''''], [''''], [''''], ]
 
-        #print(f"Данные таблицы {table_data}")
+        print(f"Данные таблицы {table_data}")
 
         rows = self.ui.personInfoTable.rowCount()
         cols = self.ui.personInfoTable.columnCount()
@@ -105,10 +105,10 @@ class MainWindow(QMainWindow):
             id = int(lst_select_text[1])
 
 
-        conn = sqlite3.connect('1.db')  # выделяем гендер
+        conn = sqlite3.connect('database.db')  # выделяем гендер
         cursor = conn.cursor()
         cursor.execute(
-            f"SELECT S.Пол FROM Сотрудник as S WHERE S.ID = {id};")
+            f"SELECT W.gender FROM worker as W WHERE W.ID = {id};")
         rows = cursor.fetchall()
         pers_info = rows
         gender = pers_info[0][0]
@@ -212,7 +212,7 @@ class MainWindow(QMainWindow):
         if file_path:
             print(f"Путь к выбранному файлу: {file_path}")
             try:
-                process_excel_to_sqlite(file_path, '1.db')
+                process_excel_to_sqlite(file_path, 'database.db')
                 self.ui.loadTab.setText('Таблица загружена')
             except Exception:
                 self.ui.loadTab.setText('Ошибка загрузка таблицы')
