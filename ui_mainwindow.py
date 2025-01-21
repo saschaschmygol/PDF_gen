@@ -222,6 +222,132 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.widget_2)
 
         self.tabWidget.addTab(self.database, "")
+        self.tab = QWidget()
+        self.tab.setObjectName(u"tab")
+        self.verticalLayout_5 = QVBoxLayout(self.tab)
+        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.widget_4 = QWidget(self.tab)
+        self.widget_4.setObjectName(u"widget_4")
+        self.widget_4.setMinimumSize(QSize(0, 30))
+        self.widget_4.setMaximumSize(QSize(16777215, 30))
+        self.horizontalLayout_3 = QHBoxLayout(self.widget_4)
+        self.horizontalLayout_3.setSpacing(10)
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
+        self.nameLabel_2 = QLabel(self.widget_4)
+        self.nameLabel_2.setObjectName(u"nameLabel_2")
+
+        self.horizontalLayout_3.addWidget(self.nameLabel_2)
+
+        self.searchPatientTextField_2 = QTextEdit(self.widget_4)
+        self.searchPatientTextField_2.setObjectName(u"searchPatientTextField_2")
+        self.searchPatientTextField_2.setMaximumSize(QSize(16777215, 30))
+
+        self.horizontalLayout_3.addWidget(self.searchPatientTextField_2)
+
+        self.fnameLabel_2 = QLabel(self.widget_4)
+        self.fnameLabel_2.setObjectName(u"fnameLabel_2")
+
+        self.horizontalLayout_3.addWidget(self.fnameLabel_2)
+
+        self.fnamTextField_2 = QTextEdit(self.widget_4)
+        self.fnamTextField_2.setObjectName(u"fnamTextField_2")
+
+        self.horizontalLayout_3.addWidget(self.fnamTextField_2)
+
+        self.surnameLabel_2 = QLabel(self.widget_4)
+        self.surnameLabel_2.setObjectName(u"surnameLabel_2")
+
+        self.horizontalLayout_3.addWidget(self.surnameLabel_2)
+
+        self.surnameTextField_2 = QTextEdit(self.widget_4)
+        self.surnameTextField_2.setObjectName(u"surnameTextField_2")
+
+        self.horizontalLayout_3.addWidget(self.surnameTextField_2)
+
+        self.searchPatientButton_2 = QPushButton(self.widget_4)
+        self.searchPatientButton_2.setObjectName(u"searchPatientButton_2")
+        self.searchPatientButton_2.setMinimumSize(QSize(0, 30))
+        self.searchPatientButton_2.setMaximumSize(QSize(16777215, 30))
+
+        self.horizontalLayout_3.addWidget(self.searchPatientButton_2)
+
+
+        self.verticalLayout_5.addWidget(self.widget_4)
+
+        self.findPatients_2 = QComboBox(self.tab)
+        self.findPatients_2.setObjectName(u"findPatients_2")
+
+        self.verticalLayout_5.addWidget(self.findPatients_2)
+
+        self.generatePDF_2 = QPushButton(self.tab)
+        self.generatePDF_2.setObjectName(u"generatePDF_2")
+
+        self.verticalLayout_5.addWidget(self.generatePDF_2)
+
+        self.widget_5 = QWidget(self.tab)
+        self.widget_5.setObjectName(u"widget_5")
+        self.verticalLayout_4 = QVBoxLayout(self.widget_5)
+        self.verticalLayout_4.setSpacing(0)
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
+        self.personInfoTable_2 = QTableWidget(self.widget_5)
+        if (self.personInfoTable_2.columnCount() < 5):
+            self.personInfoTable_2.setColumnCount(5)
+        __qtablewidgetitem8 = QTableWidgetItem()
+        self.personInfoTable_2.setHorizontalHeaderItem(0, __qtablewidgetitem8)
+        __qtablewidgetitem9 = QTableWidgetItem()
+        self.personInfoTable_2.setHorizontalHeaderItem(1, __qtablewidgetitem9)
+        __qtablewidgetitem10 = QTableWidgetItem()
+        self.personInfoTable_2.setHorizontalHeaderItem(2, __qtablewidgetitem10)
+        __qtablewidgetitem11 = QTableWidgetItem()
+        self.personInfoTable_2.setHorizontalHeaderItem(3, __qtablewidgetitem11)
+        __qtablewidgetitem12 = QTableWidgetItem()
+        self.personInfoTable_2.setHorizontalHeaderItem(4, __qtablewidgetitem12)
+        self.personInfoTable_2.setObjectName(u"personInfoTable_2")
+        self.personInfoTable_2.setMaximumSize(QSize(16777215, 100))
+        self.personInfoTable_2.setStyleSheet(u"")
+        self.personInfoTable_2.horizontalHeader().setCascadingSectionResizes(False)
+        self.personInfoTable_2.horizontalHeader().setDefaultSectionSize(200)
+        self.personInfoTable_2.horizontalHeader().setProperty(u"showSortIndicator", False)
+        self.personInfoTable_2.horizontalHeader().setStretchLastSection(True)
+        self.personInfoTable_2.verticalHeader().setHighlightSections(True)
+        self.personInfoTable_2.verticalHeader().setProperty(u"showSortIndicator", False)
+        self.personInfoTable_2.verticalHeader().setStretchLastSection(False)
+
+        self.verticalLayout_4.addWidget(self.personInfoTable_2)
+
+        self.tableWidget_2 = QTableWidget(self.widget_5)
+        if (self.tableWidget_2.columnCount() < 3):
+            self.tableWidget_2.setColumnCount(3)
+        __qtablewidgetitem13 = QTableWidgetItem()
+        self.tableWidget_2.setHorizontalHeaderItem(0, __qtablewidgetitem13)
+        __qtablewidgetitem14 = QTableWidgetItem()
+        self.tableWidget_2.setHorizontalHeaderItem(1, __qtablewidgetitem14)
+        __qtablewidgetitem15 = QTableWidgetItem()
+        self.tableWidget_2.setHorizontalHeaderItem(2, __qtablewidgetitem15)
+        self.tableWidget_2.setObjectName(u"tableWidget_2")
+        self.tableWidget_2.setLineWidth(1)
+        self.tableWidget_2.setRowCount(0)
+        self.tableWidget_2.horizontalHeader().setDefaultSectionSize(300)
+        self.tableWidget_2.horizontalHeader().setStretchLastSection(False)
+
+        self.verticalLayout_4.addWidget(self.tableWidget_2)
+
+        self.addLineButton_2 = QPushButton(self.widget_5)
+        self.addLineButton_2.setObjectName(u"addLineButton_2")
+
+        self.verticalLayout_4.addWidget(self.addLineButton_2)
+
+        self.deleteLineButton_2 = QPushButton(self.widget_5)
+        self.deleteLineButton_2.setObjectName(u"deleteLineButton_2")
+
+        self.verticalLayout_4.addWidget(self.deleteLineButton_2)
+
+
+        self.verticalLayout_5.addWidget(self.widget_5)
+
+        self.tabWidget.addTab(self.tab, "")
 
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
 
@@ -236,7 +362,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(2)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -276,5 +402,32 @@ class Ui_MainWindow(object):
         self.addLineButton.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0441\u0442\u0440\u043e\u043a\u0443", None))
         self.deleteLineButton.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0441\u0442\u0440\u043e\u043a\u0443", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.database), QCoreApplication.translate("MainWindow", u"database.sqlite", None))
+        self.nameLabel_2.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043c\u044f", None))
+        self.searchPatientTextField_2.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0438\u043c\u044f \u043f\u0430\u0446\u0438\u0435\u043d\u0442\u0430", None))
+        self.fnameLabel_2.setText(QCoreApplication.translate("MainWindow", u"\u0424\u0430\u043c\u0438\u043b\u0438\u044f", None))
+        self.fnamTextField_2.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0444\u0430\u043c\u0438\u043b\u0438\u044e \u043f\u0430\u0446\u0438\u0435\u043d\u0442\u0430", None))
+        self.surnameLabel_2.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0442\u0447\u0435\u0441\u0442\u0432\u043e", None))
+        self.surnameTextField_2.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043e\u0442\u0447\u0435\u0441\u0442\u0432\u043e \u043f\u0430\u0446\u0438\u0435\u043d\u0442\u0430", None))
+        self.searchPatientButton_2.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0439\u0442\u0438 \u043f\u0430\u0446\u0438\u0435\u043d\u0442\u0430", None))
+        self.generatePDF_2.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0433\u0435\u043d\u0435\u0440\u0438\u0440\u043e\u0432\u0430\u0442\u044c PDF", None))
+        ___qtablewidgetitem8 = self.personInfoTable_2.horizontalHeaderItem(0)
+        ___qtablewidgetitem8.setText(QCoreApplication.translate("MainWindow", u"\u0424\u0430\u043c\u0438\u043b\u0438\u044f", None));
+        ___qtablewidgetitem9 = self.personInfoTable_2.horizontalHeaderItem(1)
+        ___qtablewidgetitem9.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043c\u044f", None));
+        ___qtablewidgetitem10 = self.personInfoTable_2.horizontalHeaderItem(2)
+        ___qtablewidgetitem10.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0442\u0447\u0435\u0441\u0442\u0432\u043e", None));
+        ___qtablewidgetitem11 = self.personInfoTable_2.horizontalHeaderItem(3)
+        ___qtablewidgetitem11.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u043b\u0436\u043d\u043e\u0441\u0442\u044c", None));
+        ___qtablewidgetitem12 = self.personInfoTable_2.horizontalHeaderItem(4)
+        ___qtablewidgetitem12.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e\u0434\u0440\u0430\u0437\u0434\u0435\u043b\u0435\u043d\u0438\u0435", None));
+        ___qtablewidgetitem13 = self.tableWidget_2.horizontalHeaderItem(0)
+        ___qtablewidgetitem13.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0443\u0435\u043c\u044b\u0439 \u0441\u0440\u043e\u043a", None));
+        ___qtablewidgetitem14 = self.tableWidget_2.horizontalHeaderItem(1)
+        ___qtablewidgetitem14.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043d\u0444\u0435\u043a\u0446\u0438\u043e\u043d\u043d\u043e\u0435 \u0437\u0430\u0431\u043e\u043b\u0435\u0432\u0430\u043d\u0438\u0435", None));
+        ___qtablewidgetitem15 = self.tableWidget_2.horizontalHeaderItem(2)
+        ___qtablewidgetitem15.setText(QCoreApplication.translate("MainWindow", u"\u0422\u0438\u043f", None));
+        self.addLineButton_2.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0441\u0442\u0440\u043e\u043a\u0443", None))
+        self.deleteLineButton_2.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0441\u0442\u0440\u043e\u043a\u0443", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"\u0421\u0442\u0440\u0430\u043d\u0438\u0446\u0430", None))
     # retranslateUi
 
