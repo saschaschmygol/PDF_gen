@@ -363,21 +363,21 @@ def process_excel_to_sqlite(file_path, base_path):
 
             # Вставка или обновление данных сотрудника
             cursor.execute("""
-                INSERT INTO worker (ID, firstname, lastname, name, gender, dateOfBirth, status, position)
+                INSERT INTO worker (ID, firstname, name, lastname, gender, dateOfBirth, status, position)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(ID) DO UPDATE SET
                     firstname = excluded.firstname,
-                    lastname = excluded.lastname,
                     name = excluded.name,
+                    lastname = excluded.lastname,
                     gender = excluded.gender,
                     dateOfBirth = excluded.dateOfBirth,
                     status = excluded.status,
                     position = excluded.position
             """, (
                 id_counter,  # Генерация ID
-                row.get('Имя'),  # firstname
-                row.get('Фамилия'),  # lastname
-                row.get('Отчество'),  # name
+                row.get('Фамилия'),  # firstname
+                row.get('Имя'),  # name
+                row.get('Отчество'),  # lastname
                 gender,  # gender
                 row.get('Дата рождения'),  # dateOfBirth
                 status,  # status
@@ -442,7 +442,7 @@ def process_excel_to_sqlite(file_path, base_path):
             # Получение ID сотрудника из таблицы worker
             cursor.execute("""
                 SELECT ID FROM worker
-                WHERE lastname = ? AND firstname = ? AND name = ? AND dateOfBirth = ?
+                WHERE firstname = ? AND name = ? AND lastname = ? AND dateOfBirth = ?
             """, (row['Фамилия'], row['Имя'], row['Отчество'], row['Дата рождения']))
             worker = cursor.fetchone()
             if not worker:
@@ -459,11 +459,9 @@ def process_excel_to_sqlite(file_path, base_path):
                 'Шигеллвак': row['Шигеллвак'],
                 'Корь': row['Корь'],
                 'Краснуха': row['Краснуха'],
-                'Гепатит А': row['Гепатит А'],
                 'Грипп': row['Грипп'],
                 'Ветряная оспа': row['Ветряная оспа'],
                 'ВПЧ': row['ВПЧ'],
-                'Пневмо': row['Пневмо'],
                 'НКВИ': row['НКВИ'],
             }
 
@@ -477,14 +475,49 @@ def process_excel_to_sqlite(file_path, base_path):
             def is_valid_date(date_str):
                 """Проверка на корректность даты и форматирование в YYYY-MM-DD"""
                 try:
-                    # Пробуем распарсить дату
-                    parsed_date = pd.to_datetime(date_str, dayfirst=True)
+                    # Если строка слишком длинная, обрезаем до формата YYYY-MM-DD
+                    if len(date_str) > 10:
+                        date_str = date_str[:10]  # Убираем лишние символы, например, '-01-01'
+
+                    # Пробуем преобразовать строку в дату
+                    parsed_date = pd.to_datetime(date_str, dayfirst=True, errors='coerce')
+                    if pd.isna(parsed_date):
+                        raise ValueError("Date parsing failed")
+
                     # Возвращаем дату в формате YYYY-MM-DD
                     return parsed_date.strftime('%Y-%m-%d')
                 except Exception as e:
-                    print(f"Invalid date format: {date_str} Error: {e}")
+                    print(f"Invalid date format: {date_str}. Error: {e}")
                     return None
 
+            def fix_excel_date_format(date_str):
+                """
+                Исправление формата даты, если присутствуют лишние части, такие как '-01-01' или время.
+                """
+                if isinstance(date_str, str):
+                    # Убираем всё после 10-го символа (YYYY-MM-DD), если дата имеет лишние части
+                    if len(date_str) > 10:
+                        # Убираем время (например, '2020-09-25 00:00' или '2020-09-25-01-01')
+                        if ' ' in date_str or '-' in date_str[-5:]:
+                            # Убираем '-01-01' или время
+                            date_str = date_str[:10]
+                        # Убираем лишнюю точку, если она есть в конце (например, "12.1987.")
+                        if date_str[-1] == '.':
+                            date_str = date_str[:-1]
+                return date_str
+
+            def remove_time_from_date(data):
+                """
+                Убирает время из дат, если оно присутствует, и возвращает только дату в формате YYYY-MM-DD.
+                """
+                if isinstance(data, pd.Timestamp):
+                    return data.strftime('%Y-%m-%d')
+                if isinstance(data, str):
+                    # Убираем время, если оно присутствует
+                    data = fix_excel_date_format(data)  # Убираем суффикс "-01-01" и время
+                return data
+
+            # Основной цикл обработки данных
             for vaccine, data in vaccinations.items():
                 if pd.notna(data):
                     data = str(data).strip()
@@ -494,17 +527,18 @@ def process_excel_to_sqlite(file_path, base_path):
                     current_type = None
                     last_valid_date = None
                     last_valid_type = None
-                    invalid_data_found = False  # Флаг для некорректных данных в строке
+                    invalid_data_found = False
 
                     for record in records:
                         record = record.strip()
                         if not record:
                             continue
 
-                        # Обработка текста без дат (например, "отказ", "антитела")
-                        if re.search(
-                                r'отказ|не получено|нет данных|\+|переболела|м/о|положительные|антитела|ат|результат антител|перенес|положительные|со слов не болела',
-                                record, re.IGNORECASE):
+                        # Убираем время из записи
+                        record = remove_time_from_date(record)
+
+                        # Обработка строки без даты
+                        if re.search(r'отказ|не получено|антитела|переболел|положительные', record, re.IGNORECASE):
                             last_date = '2001-01-01'
                             last_type = 'ant'
 
@@ -513,8 +547,8 @@ def process_excel_to_sqlite(file_path, base_path):
                             current_type = record.lower()
                             continue
 
-                        # Обработка строки с датой и типом RV (например, RV21.04.2022)
-                        if re.match(r'(rv|v|rv1|v1|v2|v3|rv2|rv3)(\d{2}\.\d{2}\.\d{4})', record, re.IGNORECASE):
+                        # Обработка строки с датой и типом RV
+                        elif re.match(r'(rv|v|rv1|v1|v2|v3)(\d{2}\.\d{2}\.\d{4})', record, re.IGNORECASE):
                             type_match = re.match(r'(rv|v|rv1|v1|v2|v3)', record, re.IGNORECASE)
                             date_match = re.search(r'(\d{2}\.\d{2}\.\d{4})', record)
                             if type_match and date_match:
@@ -522,20 +556,6 @@ def process_excel_to_sqlite(file_path, base_path):
                                 if date_parsed:
                                     last_valid_date = date_parsed
                                     last_valid_type = type_match.group(1).lower()
-
-                        # Ошибочное добавление частей даты "01-01" в конец
-                        if re.match(r'\d{4}-\d{2}-\d{2}-\d{2}-\d{2}',
-                                    record):  # Обнаружена ошибка с добавлением лишних частей
-                            print(f"Error: Incorrect date format detected: {record}")
-                            # Исправляем формат даты
-                            record = record[:10]  # Оставляем только корректный формат "yyyy-mm-dd"
-                            date_parsed = is_valid_date(record)
-                            if date_parsed:
-                                last_valid_date = date_parsed
-                                last_valid_type = current_type
-                            else:
-                                print(f"Skipped due to invalid date format: {record}")
-                                continue  # Пропускаем эту запись
 
                         # Если это дата
                         try:
@@ -549,8 +569,10 @@ def process_excel_to_sqlite(file_path, base_path):
                                 if date_parsed:
                                     last_valid_date = date_parsed  # Обновляем последнюю валидную дату
                                     last_valid_type = current_type  # Обновляем тип для последней валидной даты
+                                    print(f"Parsed valid date: {last_valid_date}")
                                 else:
                                     invalid_data_found = True  # Найдена некорректная дата
+                                    print(f"Invalid date detected: {record}")
                                     break  # Прерываем обработку, чтобы пропустить эту строку
 
                             # Если это месяц и год (например, "12.2000"), то добавляем только месяц и год
@@ -559,12 +581,16 @@ def process_excel_to_sqlite(file_path, base_path):
                                 date_parsed = f"{year}-{month.zfill(2)}-01"
                                 last_valid_date = date_parsed
                                 last_valid_type = current_type
+                                print(f"Parsed month/year date: {last_valid_date}")
 
                             # Если это только год (например, "2000"), добавляем только год с месяцем и днем = 01
                             elif re.search(year_pattern, record):
+                                # Убираем точку в конце, если она есть
+                                record = record.strip('.')
                                 date_parsed = f"{record}-01-01"
                                 last_valid_date = date_parsed
                                 last_valid_type = current_type
+                                print(f"Parsed year-only date: {last_valid_date}")
 
                             # Обработка строки типа "переболела 12.2000. Запись в ПС"
                             elif re.search(r'переболела|переболел|антитела|полож|со слов|отказ|сертификат|данные',
@@ -577,6 +603,7 @@ def process_excel_to_sqlite(file_path, base_path):
                                     if date_parsed:
                                         last_valid_date = date_parsed
                                         last_valid_type = 'ant'
+                                        print(f"Parsed date from 'переболела': {last_valid_date}")
                                 else:
                                     # Если нет полной даты, ищем только месяц и год (например, "12.2000")
                                     date_match = re.search(r'(\d{2}\.\d{4})', record)
@@ -585,20 +612,23 @@ def process_excel_to_sqlite(file_path, base_path):
                                         date_parsed = f"{year}-{month.zfill(2)}-01"  # Форматируем в "yyyy-mm-01"
                                         last_valid_date = date_parsed
                                         last_valid_type = 'ant'
+                                        print(f"Parsed month/year date from 'переболела': {last_valid_date}")
                                     else:
                                         # Если нет даты вообще, ставим дефолтную дату
                                         date_parsed = '2001-01-01'  # Если нет даты, ставим дефолтную дату
                                         last_valid_date = date_parsed
                                         last_valid_type = 'ant'
+                                        print(f"Set default date '2001-01-01' for record: {record}")
 
-                                # Дополнительная проверка для строк, содержащих только год (например, "1982")
-                                if not last_valid_date:
-                                    year_match = re.search(r'(\d{4})', record)
-                                    if year_match:
-                                        year = year_match.group(1)
-                                        date_parsed = f"{year}-01-01"  # Если только год, ставим "yyyy-01-01"
-                                        last_valid_date = date_parsed
-                                        last_valid_type = 'ant'
+                                    # Дополнительная проверка для строк, содержащих только год (например, "1982")
+                                    if not last_valid_date:
+                                        year_match = re.search(r'(\d{4})', record)
+                                        if year_match:
+                                            year = year_match.group(1)
+                                            date_parsed = f"{year}-01-01"  # Если только год, ставим "yyyy-01-01"
+                                            last_valid_date = date_parsed
+                                            last_valid_type = 'ant'
+                                            print(f"Set default date 'yyyy-01-01' for record with only year: {record}")
 
                         except Exception as e:
                             print(f"Error processing date {record}: {e}")
@@ -609,22 +639,32 @@ def process_excel_to_sqlite(file_path, base_path):
                         continue  # Пропускаем всю запись, если найдена некорректная дата
 
                     # После получения даты, перед её вставкой в базу данных, проверяем и исправляем формат
-                    # После получения даты, перед её вставкой в базу данных, проверяем и исправляем формат
-                    # После получения даты, перед её вставкой в базу данных, проверяем и исправляем формат
                     if last_valid_date:
+                        # Если прививка относится к ежегодным, ставим тип "v", если тип не был указан
+                        if vaccine in annual_vaccinations and last_valid_type is None:
+                            last_valid_type = 'v'
+
+                        # Обработка данных для НКВИ
+                        if vaccine == 'НКВИ':
+                            last_valid_type = 'v'  # Устанавливаем тип 'v' для НКВИ, если тип не указан
+
+                        # Добавляем тип 'ant' для записей, где нет типа
+                        if last_valid_type is None:
+                            last_valid_type = 'ant'
+
                         # Выводим дату перед вставкой только для работника с ID 6
                         if worker_id == 6:
                             print(
                                 f"Prepared for insert - Worker ID: {worker_id}, Vaccine: {vaccine}, Date: {last_valid_date}, Type: {last_valid_type}")
 
-                        # Убираем лишние части из даты, если они присутствуют, но только для ежегодных дат вида "yyyy-mm-dd-01-01"
-                        # Эта проверка должна срабатывать только для ежегодных прививок, таких как тип 'v'
-                        if len(last_valid_date) > 10 and last_valid_date[-5:] == "-01-01" and last_valid_type:
-                            last_valid_date = last_valid_date[:10]  # Оставляем только первую часть "yyyy-mm-dd"
+                        # Убираем лишние части из даты, если они присутствуют
+                        last_valid_date = fix_excel_date_format(last_valid_date)
 
-                        # Если это ежегодная прививка, тип должен быть 'v', если не указано иначе
-                        if vaccine in annual_vaccinations and not last_valid_type:
-                            last_valid_type = 'v'
+                        # Если дата записана в формате "dd.mm.yyyy", преобразуем её в "yyyy-mm-dd"
+                        if re.match(r'\d{2}\.\d{2}\.\d{4}', last_valid_date):
+                            day, month, year = last_valid_date.split('.')
+                            last_valid_date = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+                            print(f"Converted date to 'yyyy-mm-dd': {last_valid_date}")
 
                         # Убедимся, что дата имеет правильный формат "yyyy-mm-dd"
                         if len(last_valid_date) != 10 or not re.match(r'^\d{4}-\d{2}-\d{2}$', last_valid_date):
@@ -634,24 +674,82 @@ def process_excel_to_sqlite(file_path, base_path):
 
                         # Проверяем, существует ли запись в базе данных
                         vaccine_name = vaccination_mapping.get(vaccine, vaccine)
-                        cursor.execute("""
+                        cursor.execute(""" 
                             SELECT 1 FROM immunization
-                            WHERE workerID = ? AND vaccination = ? AND date = ? AND type = ?
+                            WHERE workerID = ? AND vaccination = ? AND date = ? AND type = ? 
                         """, (worker_id, vaccine_name, last_valid_date, last_valid_type))
                         exists = cursor.fetchone()
 
                         # Если записи нет, вставляем новую
                         try:
                             if not exists:
-                                cursor.execute("""
+                                cursor.execute(""" 
+                                    INSERT INTO immunization (workerID, vaccination, date, type) 
+                                    VALUES (?, ?, ?, ?) 
+                                """, (worker_id, vaccine_name, last_valid_date, last_valid_type))
+                                print(
+                                    f"Inserted: Worker ID {worker_id}, Vaccine {vaccine}, Date {last_valid_date}, Type {last_valid_type}")
+                        except Exception as e:
+                            print(f"Error inserting data: {e}")
+
+                    # Если найдена некорректная дата в последней ячейке, пропускаем запись
+                    if invalid_data_found:
+                        print(f"Skipped: Invalid data found in vaccine {vaccine}")
+                        continue  # Пропускаем всю запись, если найдена некорректная дата
+
+                    # После получения даты, перед её вставкой в базу данных, проверяем и исправляем формат
+                    if last_valid_date:
+                        # Если прививка относится к ежегодным, ставим тип "v", если тип не был указан
+                        if vaccine in annual_vaccinations and last_valid_type is None:
+                            last_valid_type = 'v'
+
+                        # Обработка данных для НКВИ
+                        if vaccine == 'НКВИ':
+                            last_valid_type = 'v'  # Устанавливаем тип 'v' для НКВИ, если тип не указан
+
+                        # Выводим дату перед вставкой только для работника с ID 6
+                        if worker_id == 6:
+                            print(
+                                f"Prepared for insert - Worker ID: {worker_id}, Vaccine: {vaccine}, Date: {last_valid_date}, Type: {last_valid_type}")
+
+                        # Убираем лишние части из даты, если они присутствуют
+                        last_valid_date = fix_excel_date_format(last_valid_date)
+
+                        # Если дата записана в формате "dd.mm.yyyy", преобразуем её в "yyyy-mm-dd"
+                        if re.match(r'\d{2}\.\d{2}\.\d{4}', last_valid_date):
+                            day, month, year = last_valid_date.split('.')
+                            last_valid_date = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+                            print(f"Converted date to 'yyyy-mm-dd': {last_valid_date}")
+
+                        # Убедимся, что дата имеет правильный формат "yyyy-mm-dd"
+                        if len(last_valid_date) != 10 or not re.match(r'^\d{4}-\d{2}-\d{2}$', last_valid_date):
+                            print(
+                                f"Invalid date format detected for Worker ID {worker_id}, Vaccine {vaccine}, Date {last_valid_date}")
+                            continue  # Пропускаем запись с некорректной датой
+
+                        # Проверяем, существует ли запись в базе данных
+                        vaccine_name = vaccination_mapping.get(vaccine, vaccine)
+                        cursor.execute(""" 
+                            SELECT 1 FROM immunization
+                            WHERE workerID = ? AND vaccination = ? AND date = ? AND type = ? 
+                        """, (worker_id, vaccine_name, last_valid_date, last_valid_type))
+                        exists = cursor.fetchone()
+
+                        # Если записи нет, вставляем новую
+                        try:
+                            if not exists:
+                                cursor.execute(""" 
                                     INSERT INTO immunization (workerID, vaccination, date, type)
-                                    VALUES (?, ?, ?, ?)
+                                    VALUES (?, ?, ?, ?) 
                                 """, (worker_id, vaccine_name, last_valid_date, last_valid_type))
                                 print(
                                     f"Inserted: Worker ID {worker_id}, Vaccine {vaccine_name}, Date {last_valid_date}, Type {last_valid_type}")
                             else:
                                 print(
                                     f"Record exists: Worker ID {worker_id}, Vaccine {vaccine_name}, Date {last_valid_date}, Type {last_valid_type}")
+                        except Exception as e:
+                            print(
+                                f"Error inserting data into DB: {e} for Worker ID {worker_id}, Vaccine {vaccine_name}, Date {last_valid_date}, Type {last_valid_type}")
                         except Exception as e:
                             print(
                                 f"Error inserting data into DB: {e} for Worker ID {worker_id}, Vaccine {vaccine_name}, Date {last_valid_date}, Type {last_valid_type}")
@@ -874,24 +972,7 @@ def process_excel_to_sqlite(file_path, base_path):
                             if date_match:
                                 date_parsed = pd.to_datetime(date_match.group(1), dayfirst=True).strftime('%Y-%m-%d')
                                 last_date = date_parsed
-                                last_type = 'v1'
-                        elif match[1]:  # Обработка обычных дат и типов
-                            try:
-                                record = match[1].strip()
-                                type_match = re.search(r'^(V|V1|V2|RV|RV1|RV2)', record, re.IGNORECASE)
-                                date_match = re.search(r'(\d{2}\.\d{2}\.\d{2,4})', record)
-                                if date_match:
-                                    date_parsed = pd.to_datetime(date_match.group(1), dayfirst=True).strftime(
-                                        '%Y-%m-%d')
-                                    current_type = type_match.group(1).lower() if type_match else 'v'
-
-                                    if last_date is None or date_parsed > last_date:
-                                        last_date = date_parsed
-                                        last_type = current_type
-                            except Exception as e:
-                                error_msg = f"Error processing record {record} in data: {data}, Error: {e}"
-                                logging.error(error_msg)
-                                error_log.append(error_msg)
+                                last_type = 'v'
 
                     # Добавление данных в базу
                     if last_date and last_type:
@@ -947,7 +1028,7 @@ def process_excel_to_sqlite(file_path, base_path):
             # Получаем ID сотрудника через фамилию, имя, отчество и дату рождения
             cursor.execute("""
                 SELECT ID FROM worker
-                WHERE lastname = ? AND firstname = ? AND name = ? AND dateOfBirth = ?
+                WHERE firstname = ? AND name = ? AND lastname = ? AND dateOfBirth = ?
             """, (row['Фамилия'].strip(), row['Имя'].strip(), row['Отчество'].strip(), row['Дата рождения']))
             worker = cursor.fetchone()
 
