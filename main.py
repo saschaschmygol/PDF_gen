@@ -5,16 +5,81 @@ import datetime
 
 #from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QAbstractItemView, QFileDialog, QTableWidgetItem, \
-    QTableWidget, QTextEdit
-from PySide6.QtCore import Slot, QDate, Qt
+    QTableWidget, QTextEdit, QStyledItemDelegate, QComboBox, QLineEdit
+from PySide6.QtCore import Slot, QDate, Qt, QRegularExpression
+from PySide6.QtGui import QRegularExpressionValidator
 
+from pdf_settings_style import RENAME_DICT
 from ui_mainwindow import Ui_MainWindow
 from file_create import generate_pdf
 from file_db import date_person
-from app_func_logic import searсh_men, mont_replace, rename_vaccine, rename_vaccine_R
+from app_func_logic import searсh_men, mont_replace, rename_vaccine, rename_vaccine_R, ext_pers_info
 
 from read_exel import process_excel_to_sqlite
 #from pdf_settings_style import rename_vaccine
+
+class ComboBoxDelegate(QStyledItemDelegate):
+    def __init__(self, options, parent=None):
+        super().__init__(parent)
+        self.options = options  # Список вариантов выбора
+
+    def createEditor(self, parent, option, index):
+        # Создаем QComboBox как редактор для ячейки
+        combo_box = QComboBox(parent)
+        combo_box.addItems(self.options)
+        return combo_box
+
+    def setEditorData(self, editor, index):
+        # Устанавливаем начальное значение редактора из ячейки
+        current_text = index.data()
+        editor.setCurrentText(current_text)
+
+    def setModelData(self, editor, model, index):
+        # Сохраняем выбранное значение из редактора обратно в модель
+        model.setData(index, editor.currentText())
+
+class DateDelegate(QStyledItemDelegate):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def createEditor(self, parent, option, index):
+        # Создаем редактор QLineEdit
+        editor = QLineEdit(parent)
+
+        # Устанавливаем валидатор для формата "дд-мм-гггг"
+        regex = QRegularExpression(r"^(0[1-9]|[12][0-9]|3[01])?(-)?(0[1-9]|1[0-2])?(-)?(\d{0,4})?$")
+        validator = QRegularExpressionValidator(regex, editor)
+        editor.setValidator(validator)
+
+        # Подключаем обработку текста для автоматического добавления дефисов
+        editor.textEdited.connect(self.format_date)
+        return editor
+
+    def setEditorData(self, editor, index):
+        # Устанавливаем текущий текст ячейки в редактор
+        editor.setText(index.data() or "")
+
+    def setModelData(self, editor, model, index):
+        # Сохраняем отредактированный текст обратно в модель
+        model.setData(index, editor.text())
+
+    def format_date(self, text):
+        # Форматирование даты: автоматическое добавление дефисов
+        clean_text = text.replace("-", "")  # Удаляем уже существующие дефисы
+        formatted = ""
+
+        # Автоматически добавляем дефисы после дня и месяца
+        if len(clean_text) > 2:
+            formatted += clean_text[:2] + "-"
+            if len(clean_text) > 4:
+                formatted += clean_text[2:4] + "-"
+                formatted += clean_text[4:]
+            else:
+                formatted += clean_text[2:]
+        else:
+            formatted = clean_text
+
+        self.sender().setText(formatted)  # Обновляем текст в редакторе
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -37,8 +102,20 @@ class MainWindow(QMainWindow):
         self.ui.addLineButton_2.setEnabled(False)
         self.ui.deleteLineButton.setEnabled(False)
         self.ui.deleteLineButton_2.setEnabled(False)
-        self.ui.findPatients.currentTextChanged.connect(self.toggle_button_state) # сигнал изменения текста в ..
+        self.ui.findPatients.currentTextChanged.connect(self.toggle_button_state) # сигнал изменения выбранного текста
         self.ui.findPatients_2.currentTextChanged.connect(self.toggle_button_state)
+
+        # # устанавливаем делегат на колонку Инфекционное заболевание
+        optionsDelegate = [k for k in RENAME_DICT.values()]
+        self.combo_delegate = ComboBoxDelegate(optionsDelegate)
+        self.ui.tableWidget_2.setItemDelegateForColumn(1, self.combo_delegate)
+
+        optionsDelegateType = ['v', 'v1', 'v2', 'v3', 'rv', 'rv1']
+        self.combo_delegateType = ComboBoxDelegate(optionsDelegateType)
+        self.ui.tableWidget_2.setItemDelegateForColumn(2, self.combo_delegateType)
+
+        self.date_delegate = DateDelegate(self)
+        self.ui.tableWidget_2.setItemDelegateForColumn(0, self.date_delegate)
 
         self.events()
         self.settings_start()
@@ -49,7 +126,8 @@ class MainWindow(QMainWindow):
         today_time = datetime.date.today()
         self.ui.dateEdit_2.setDate(QDate(today_time.year,  today_time.month, today_time.day)) #установка сегодняшней даты
         self.ui.dateEdit.setDate(QDate(today_time.year,  today_time.month, today_time.day))
-        self.ui.personInfoTable.setEditTriggers(QTableWidget.NoEditTriggers) # отключаем редактирование таблицы с перс. информ.
+        self.ui.personInfoTable.setEditTriggers(QTableWidget.NoEditTriggers) # отключаем редактирование таблицы с перс.и
+        self.ui.personInfoTable_2.setEditTriggers(QTableWidget.NoEditTriggers)
 
     def events(self):
 
@@ -58,7 +136,10 @@ class MainWindow(QMainWindow):
         self.ui.addLineButton_2.clicked.connect(self.add_line_table)
         self.ui.deleteLineButton_2.clicked.connect(self.delete_line_table)
 
-        self.ui.generatePDF.clicked.connect(self.clic_generate)
+        self.ui.generatePDF.clicked.connect(lambda: self.clic_generate(self.ui.tableWidget,
+                                                                       self.ui.personInfoTable, self.ui.findPatients))
+        self.ui.generatePDF_2.clicked.connect(lambda: self.clic_generate(self.ui.tableWidget_2,
+                                                                       self.ui.personInfoTable_2, self.ui.findPatients_2))
 
         self.ui.searchPatientButton.clicked.connect(lambda: self.search_pacient(self.ui.findPatients,
                     self.ui.searchPatientTextField, self.ui.fnamTextField, self.ui.surnameTextField))
@@ -70,20 +151,20 @@ class MainWindow(QMainWindow):
         self.ui.preview_button.clicked.connect(self.preview_notification)
 
 
-    def clic_generate(self):
+    def clic_generate(self, tableWidget, personInfoTable, findPatients):
         ''' Генерация pdf '''
 
         data = {'date': []}
         #Считать данные из QTableWidget
 
-        rows = self.ui.tableWidget.rowCount()
-        cols = self.ui.tableWidget.columnCount()
+        rows = tableWidget.rowCount()
+        cols = tableWidget.columnCount()
         table_data = []  # Список для хранения данных
         for row in range(rows):
             row_data = []
             for col in range(cols):
                 #print(row_data)
-                item = self.ui.tableWidget.item(row, col)
+                item = tableWidget.item(row, col)
                 # Проверяем, что ячейка не пустая
                 if item is not None:
                     if col == 1:
@@ -99,14 +180,14 @@ class MainWindow(QMainWindow):
 
         print(f"Данные таблицы {table_data}")
 
-        rows = self.ui.personInfoTable.rowCount()
-        cols = self.ui.personInfoTable.columnCount()
+        rows = personInfoTable.rowCount()
+        cols = personInfoTable.columnCount()
         table_data_pers = []  # Список для хранения данных
         for row in range(rows):
             row_data = []
             for col in range(cols):
                 # Получаем элемент таблицы
-                item = self.ui.personInfoTable.item(row, col)
+                item = personInfoTable.item(row, col)
                 # Проверяем, что ячейка не пустая
                 if item is not None:
                     row_data.append(item.text())
@@ -115,7 +196,7 @@ class MainWindow(QMainWindow):
             table_data_pers.append(row_data)
 
 
-        select_text = self.ui.findPatients.currentText()
+        select_text = findPatients.currentText()
         lst_select_text = select_text.split(' ') # разбиваем для выделения ID
         if len(lst_select_text[0]) != 0:
             id = int(lst_select_text[1])
@@ -191,7 +272,7 @@ class MainWindow(QMainWindow):
         select_text = self.ui.findPatients.currentText() # строка из findPatients
         lst_select_text = select_text.split(' ') # разбиваем для выделения ID
 
-        if len(lst_select_text[0]) != 0:
+        if len(lst_select_text[0]) != 0: #? подумать над условием
             #print(lst_select_text[1])
             id = int(lst_select_text[1])
 
@@ -243,18 +324,36 @@ class MainWindow(QMainWindow):
 
         if sender == self.ui.addLineButton_2:
             row_position = self.ui.tableWidget_2.rowCount()
+
+            if row_position == 0: # если первый раз нажали добавить строчку
+                row_position_persinfo = self.ui.personInfoTable_2.rowCount() # если еще ничего не добавлено в перс.инфо
+                select_text = self.ui.findPatients_2.currentText()
+
+                if row_position_persinfo == 0 and len(select_text) != 0:
+                    id = int(select_text.split(' ')[1])  # ID
+                    date = ext_pers_info(id)
+
+                    row_pos_persinfo = self.ui.personInfoTable_2.rowCount()  # получаем количество строк
+                    self.ui.personInfoTable_2.insertRow(row_pos_persinfo)  # вставляем новую строку
+
+                    for column, value in enumerate(date['name'].split(' ')):
+                        self.ui.personInfoTable_2.setItem(row_pos_persinfo, column, QTableWidgetItem(value))
+
+                    for column, value in enumerate(date['post_division']):
+                        self.ui.personInfoTable_2.setItem(row_pos_persinfo, column + 3, QTableWidgetItem(value))
+
             self.ui.tableWidget_2.insertRow(row_position)
 
 
     def delete_line_table(self):
         sender = self.sender()
 
-        if sender == self.ui.addLineButton:
+        if sender == self.ui.deleteLineButton:
             current_row = self.ui.tableWidget.currentRow()  # Получаем индекс выбранной строки
             if current_row != -1:                           # Проверяем, что строка выбрана
                 self.ui.tableWidget.removeRow(current_row)
 
-        if sender == self.ui.addLineButton_2:
+        if sender == self.ui.deleteLineButton_2:
             current_row = self.ui.tableWidget_2.currentRow()
             if current_row != -1:
                 self.ui.tableWidget_2.removeRow(current_row)

@@ -46,3 +46,29 @@ def rename_vaccine(data):
 def rename_vaccine_R(data):
     ren_vac = next((k for k, v in RENAME_DICT.items() if v == data), None)
     return ren_vac
+
+def ext_pers_info(id):
+    date = {}
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    # cursor.execute(f"SELECT S.name, S.vac_1, S.vac_2, S.vac_3, S.vac_4, S.vac_5, S.vac_6, S.vac_7, S.vac_8, S.vac_9, S.vac_10, S.vac_11, S.vac_12 FROM Сфера_Работы as S")
+    # rows = cursor.fetchall()
+    # update_json_scope_work('data_dict.json', '1.db')
+
+    # Получение персональных данных
+    cursor.execute(
+        f"SELECT S.name, S.firstname, S.lastname, S.gender, S.dateOfBirth FROM worker as S WHERE S.ID = {id};")
+    rows = cursor.fetchall()
+    pers_info = rows
+
+    date['name'] = pers_info[0][1] + ' ' + pers_info[0][0] + ' ' + pers_info[0][2]  # формируем имя в строку
+    gender = pers_info[0][3]
+    date['gender'] = gender
+
+    # Получение должности и подразделения
+    cursor.execute(
+        f"SELECT P.name, P.division FROM position as P WHERE P.ID = (SELECT W.position FROM worker as W WHERE ID={id})")
+    rows = cursor.fetchall()
+    pers_info_d = rows
+    date['post_division'] = [pers_info_d[0][0], pers_info_d[0][1]]
+    return date
