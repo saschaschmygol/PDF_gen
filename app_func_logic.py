@@ -2,7 +2,7 @@ import sqlite3
 
 from pdf_settings_style import MONTH, RENAME_DICT
 
-
+#используемые функции
 def searсh_men(personInfo: list):
     ''' Проверка наличия пациента в базе '''
     request_bd = ["S.name =  '", "S.firstname = '", "S.lastname = '"] # для поиска по набору параметров Ф_И_О
@@ -22,7 +22,7 @@ def searсh_men(personInfo: list):
 
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    cursor.execute(f"SELECT S.ID, S.name, S.firstname, S.lastname, S.dateOfBirth FROM worker as S WHERE ({str_pers_info});")
+    cursor.execute(f"SELECT S.ID, S.name, S.firstname, S.lastname, S.dateOfBirth, S.gender FROM worker as S WHERE ({str_pers_info});")
     rows = cursor.fetchall()
     print(rows)
     if len(rows) == 0:
@@ -30,7 +30,7 @@ def searсh_men(personInfo: list):
     else:
         return rows
 
-def mont_replace(date ):
+def mont_replace(date):
     ''' ['2024-12-23', 'грипп', 'rv'] -> ['Ноябрь 2024'] '''
     duplicat_date = date[:]
     for n in duplicat_date:

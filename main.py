@@ -3,11 +3,9 @@ import sqlite3
 import traceback
 import datetime
 
-#from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QAbstractItemView, QFileDialog, QTableWidgetItem, \
     QTableWidget, QTextEdit, QStyledItemDelegate, QComboBox, QLineEdit
 from PySide6.QtCore import Slot, QDate, Qt, QRegularExpression
-from PySide6.QtGui import QRegularExpressionValidator
 
 from pdf_settings_style import RENAME_DICT
 from ui_mainwindow import Ui_MainWindow
@@ -16,70 +14,8 @@ from file_db import date_person
 from app_func_logic import searсh_men, mont_replace, rename_vaccine, rename_vaccine_R, ext_pers_info
 
 from read_exel import process_excel_to_sqlite
-#from pdf_settings_style import rename_vaccine
-
-class ComboBoxDelegate(QStyledItemDelegate):
-    def __init__(self, options, parent=None):
-        super().__init__(parent)
-        self.options = options  # Список вариантов выбора
-
-    def createEditor(self, parent, option, index):
-        # Создаем QComboBox как редактор для ячейки
-        combo_box = QComboBox(parent)
-        combo_box.addItems(self.options)
-        return combo_box
-
-    def setEditorData(self, editor, index):
-        # Устанавливаем начальное значение редактора из ячейки
-        current_text = index.data()
-        editor.setCurrentText(current_text)
-
-    def setModelData(self, editor, model, index):
-        # Сохраняем выбранное значение из редактора обратно в модель
-        model.setData(index, editor.currentText())
-
-class DateDelegate(QStyledItemDelegate):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-    def createEditor(self, parent, option, index):
-        # Создаем редактор QLineEdit
-        editor = QLineEdit(parent)
-
-        # Устанавливаем валидатор для формата "дд-мм-гггг"
-        regex = QRegularExpression(r"^(0[1-9]|[12][0-9]|3[01])?(-)?(0[1-9]|1[0-2])?(-)?(\d{0,4})?$")
-        validator = QRegularExpressionValidator(regex, editor)
-        editor.setValidator(validator)
-
-        # Подключаем обработку текста для автоматического добавления дефисов
-        editor.textEdited.connect(self.format_date)
-        return editor
-
-    def setEditorData(self, editor, index):
-        # Устанавливаем текущий текст ячейки в редактор
-        editor.setText(index.data() or "")
-
-    def setModelData(self, editor, model, index):
-        # Сохраняем отредактированный текст обратно в модель
-        model.setData(index, editor.text())
-
-    def format_date(self, text):
-        # Форматирование даты: автоматическое добавление дефисов
-        clean_text = text.replace("-", "")  # Удаляем уже существующие дефисы
-        formatted = ""
-
-        # Автоматически добавляем дефисы после дня и месяца
-        if len(clean_text) > 2:
-            formatted += clean_text[:2] + "-"
-            if len(clean_text) > 4:
-                formatted += clean_text[2:4] + "-"
-                formatted += clean_text[4:]
-            else:
-                formatted += clean_text[2:]
-        else:
-            formatted = clean_text
-
-        self.sender().setText(formatted)  # Обновляем текст в редакторе
+from delegate import ComboBoxDelegate, DateDelegate
+from data_storage import DataContainer, DataController
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -98,7 +34,7 @@ class MainWindow(QMainWindow):
 
         self.ui.tableWidget.setEditTriggers(QAbstractItemView.AllEditTriggers)  # Установка редактируемости всех ячеек таблицы
 
-        self.ui.addLineButton.setEnabled(False)
+        self.ui.addLineButton.setEnabled(False) # изначально заблокировано
         self.ui.addLineButton_2.setEnabled(False)
         self.ui.deleteLineButton.setEnabled(False)
         self.ui.deleteLineButton_2.setEnabled(False)
@@ -117,13 +53,17 @@ class MainWindow(QMainWindow):
         self.date_delegate = DateDelegate(self)
         self.ui.tableWidget_2.setItemDelegateForColumn(0, self.date_delegate)
 
+        self.dataContainer2 = DataContainer()
+        self.dataController2 = DataController(self.dataContainer2, self.ui.tableWidget_2)
+        self.ui.tableWidget_2.itemChanged.connect(self.dataController2.update_data_container)# обновление контейнера при редактировании таблицы
+
         self.events()
         self.settings_start()
 
     def settings_start(self):
         ''' стартовые настройки полей '''
 
-        today_time = datetime.date.today()
+        today_time = datetime.date.today() # получение текущей даты
         self.ui.dateEdit_2.setDate(QDate(today_time.year,  today_time.month, today_time.day)) #установка сегодняшней даты
         self.ui.dateEdit.setDate(QDate(today_time.year,  today_time.month, today_time.day))
         self.ui.personInfoTable.setEditTriggers(QTableWidget.NoEditTriggers) # отключаем редактирование таблицы с перс.и
@@ -249,6 +189,13 @@ class MainWindow(QMainWindow):
             #print(result_request)
             if result_request != False:
                 for result in result_request:
+                    self.dataContainer2.pers_info['id'] = result[0]
+                    self.dataContainer2.pers_info['name'] = result[1]
+                    self.dataContainer2.pers_info['firstname'] = result[2]
+                    self.dataContainer2.pers_info['lastname'] = result[3]
+                    self.dataContainer2.pers_info['birthday'] = result[4]
+                    self.dataContainer2.pers_info['gender'] = result[5]
+
                     findPatients.addItem(f"id: {result[0]} {result[1]} {result[2]}"
                                              f" {result[3]} {result[4]}")
 
@@ -343,6 +290,7 @@ class MainWindow(QMainWindow):
                         self.ui.personInfoTable_2.setItem(row_pos_persinfo, column + 3, QTableWidgetItem(value))
 
             self.ui.tableWidget_2.insertRow(row_position)
+            print(self.data_hands.rows)
 
 
     def delete_line_table(self):
