@@ -4,8 +4,9 @@ from PySide6.QtWidgets import QTableWidgetItem
 
 class DataContainer:
     def __init__(self):
-        self.rows = []
-        self.pers_info = {}
+        self.rows: list = []
+        self.pers_info: dict = {}
+        self.currentId: int = 0
 
     def get_data(self):
         return self.rows
@@ -29,6 +30,13 @@ class DataContainer:
             #print("Removed Row:", self.rows)
         else:
             print("Invalid index for removal:", index)
+
+    def update_pers_info(self, strPersInfo):
+        ''' обновление данных при выборе в findPatients новой строчки'''
+        persInf = ['name', 'firstname', 'lastname', 'dateOfBirth', 'gender', 'namePos', 'division']
+        for inst in strPersInfo:
+            self.pers_info[int(inst[0])] =  {i: inst[n+1] for n, i in enumerate(persInf)}
+
 
 
 class DataController:

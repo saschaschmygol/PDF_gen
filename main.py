@@ -11,7 +11,7 @@ from pdf_settings_style import RENAME_DICT
 from ui_mainwindow import Ui_MainWindow
 from file_create import generate_pdf
 from file_db import date_person
-from app_func_logic import searсh_men, mont_replace, rename_vaccine, rename_vaccine_R, ext_pers_info
+from app_func_logic import searсh_men, mont_replace, rename_vaccine, rename_vaccine_R
 
 from read_exel import process_excel_to_sqlite
 from delegate import ComboBoxDelegate, DateDelegate
@@ -175,7 +175,7 @@ class MainWindow(QMainWindow):
 
 
     def search_pacient(self, findPatients, searchPatientTextField, fnamTextField, surnameTextField):
-        'Поиск пациента в бд'
+        '''  Поиск пациента в бд '''
 
         findPatients.clear() # очистка предыдущего списка
 
@@ -186,16 +186,12 @@ class MainWindow(QMainWindow):
 
         try:
             result_request = searсh_men(personInfo) # получение персональной информации в формате [('', '', '', '', ''), ()]
-            #print(result_request)
-            if result_request != False:
-                for result in result_request:
-                    self.dataContainer2.pers_info['id'] = result[0]
-                    self.dataContainer2.pers_info['name'] = result[1]
-                    self.dataContainer2.pers_info['firstname'] = result[2]
-                    self.dataContainer2.pers_info['lastname'] = result[3]
-                    self.dataContainer2.pers_info['birthday'] = result[4]
-                    self.dataContainer2.pers_info['gender'] = result[5]
+            self.dataContainer2.pers_info = {}  # очищаем контейнер  перс. инф. при новом поиске
 
+            if result_request != False:
+                self.dataContainer2.update_pers_info(result_request) # обновляем контейнер
+
+                for result in result_request:
                     findPatients.addItem(f"id: {result[0]} {result[1]} {result[2]}"
                                              f" {result[3]} {result[4]}")
 
@@ -271,26 +267,7 @@ class MainWindow(QMainWindow):
 
         if sender == self.ui.addLineButton_2:
             row_position = self.ui.tableWidget_2.rowCount()
-
-            if row_position == 0: # если первый раз нажали добавить строчку
-                row_position_persinfo = self.ui.personInfoTable_2.rowCount() # если еще ничего не добавлено в перс.инфо
-                select_text = self.ui.findPatients_2.currentText()
-
-                if row_position_persinfo == 0 and len(select_text) != 0:
-                    id = int(select_text.split(' ')[1])  # ID
-                    date = ext_pers_info(id)
-
-                    row_pos_persinfo = self.ui.personInfoTable_2.rowCount()  # получаем количество строк
-                    self.ui.personInfoTable_2.insertRow(row_pos_persinfo)  # вставляем новую строку
-
-                    for column, value in enumerate(date['name'].split(' ')):
-                        self.ui.personInfoTable_2.setItem(row_pos_persinfo, column, QTableWidgetItem(value))
-
-                    for column, value in enumerate(date['post_division']):
-                        self.ui.personInfoTable_2.setItem(row_pos_persinfo, column + 3, QTableWidgetItem(value))
-
             self.ui.tableWidget_2.insertRow(row_position)
-            print(self.data_hands.rows)
 
 
     def delete_line_table(self):
@@ -320,6 +297,15 @@ class MainWindow(QMainWindow):
 
         elif sender == self.ui.findPatients_2:
             if text.strip():
+                self.dataContainer2.currentId = int(text.split()[1]) # обновляем выбранного пациента ID при смене
+
+                self.ui.personInfoTable_2.setRowCount(0) #очищаем таблицу перс.инфы
+                self.ui.personInfoTable_2.insertRow(0)  # вставляем новую строку
+                listParametrs = ['firstname', 'name', 'lastname', 'namePos', 'division']
+                for column, value in enumerate([self.dataContainer2.pers_info[self.dataContainer2.currentId][i]
+                                               for i in listParametrs]):
+                    self.ui.personInfoTable_2.setItem(0, column, QTableWidgetItem(value))
+
                 self.ui.addLineButton_2.setEnabled(True)
                 self.ui.deleteLineButton_2.setEnabled(True)
             else:
