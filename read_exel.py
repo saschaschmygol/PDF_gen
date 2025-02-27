@@ -11,9 +11,86 @@ import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(message)s')
 error_log = []  # Список для сбора ошибок
 
+import json
+import sqlite3
+import pandas as pd
+from PySide6.QtWidgets import QDialog, QVBoxLayout, QTableWidget, QTableWidgetItem, QComboBox, QPushButton, QApplication
+from PySide6.QtCore import Qt
 
+class PositionDialog(QDialog):
+    def __init__(self, data, json_path, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Уточнение должности")
+        self.setFixedSize(800, 400)
 
-def process_excel_to_sqlite(file_path, base_path):
+        self.json_path = json_path
+        self.data = data
+        self.layout = QVBoxLayout(self)
+
+        # Загрузка данных из JSON
+        with open(json_path, 'r', encoding='utf-8') as file:
+            self.sphere_dict = json.load(file)
+
+        # Создание таблицы
+        self.tableWidget = QTableWidget()
+        self.tableWidget.setRowCount(len(data))
+        self.tableWidget.setColumnCount(5)
+        self.tableWidget.setHorizontalHeaderLabels(["Фамилия", "Имя", "Отчество", "Должность", "Тип"])
+
+        # Заполнение таблицы данными
+        for i, row in enumerate(data):
+            # Проверка наличия данных в строке
+            print(f"Row {i}: {row}")  # Отладочное сообщение
+
+            # ФИО подставляются автоматически
+            self.tableWidget.setItem(i, 0, QTableWidgetItem(str(row.get('Фамилия', 'Неизвестно'))))
+            self.tableWidget.setItem(i, 1, QTableWidgetItem(str(row.get('Имя', 'Неизвестно'))))
+            self.tableWidget.setItem(i, 2, QTableWidgetItem(str(row.get('Отчество', 'Неизвестно'))))
+
+            # Название должности вписывается вручную
+            self.tableWidget.setItem(i, 3, QTableWidgetItem(row.get('Должность', '')))
+
+            # Тип должности выбирается из выпадающего списка
+            combo = QComboBox()
+            combo.addItems(["medical", "foodService", "utilityService", "nonMedical"])
+            if row.get('Должность', '').lower() in self.sphere_dict:
+                combo.setCurrentText(self.sphere_dict[row.get('Должность', '').lower()])
+            self.tableWidget.setCellWidget(i, 4, combo)
+
+        self.layout.addWidget(self.tableWidget)
+
+        # Кнопка сохранения
+        self.save_button = QPushButton("Сохранить")
+        self.save_button.clicked.connect(self.save_data)
+        self.layout.addWidget(self.save_button)
+    def save_data(self):
+        for i in range(self.tableWidget.rowCount()):
+            position = self.tableWidget.item(i, 3).text().lower()  # Приводим к нижнему регистру
+            sphere = self.tableWidget.cellWidget(i, 4).currentText()
+
+            # Если тип не выбран, не добавляем должность в JSON
+            if sphere:
+                # Проверяем, существует ли уже такая должность в словаре
+                if position not in self.sphere_dict:
+                    # Если должность новая, добавляем её в соответствующую категорию
+                    if sphere not in self.sphere_dict:
+                        self.sphere_dict[sphere] = []
+                    self.sphere_dict[sphere].append(position)
+
+        # Сохранение обновленных данных в JSON
+        with open(self.json_path, 'w', encoding='utf-8') as file:
+            json.dump(self.sphere_dict, file, ensure_ascii=False, indent=4)
+
+        self.accept()
+
+def process_excel_to_sqlite(file_path, base_path, tableWidget=None):
+    """
+    Обрабатывает данные из Excel и сохраняет их в SQLite.
+    Если передан tableWidget, данные отображаются в таблице.
+    """
+    # Путь к JSON файлу (можно вынести в конфигурацию)
+    json_path = "positions.json"
+
     # Чтение данных из Excel файла
     try:
         df = pd.read_excel(file_path, engine='openpyxl')
@@ -22,14 +99,13 @@ def process_excel_to_sqlite(file_path, base_path):
         raise
 
     # Приведение всех имен столбцов к нижнему регистру для унификации
-    df.columns = df.columns.str.strip().str.lower()  # Убираем пробелы и приводим к нижнему регистру
+    df.columns = df.columns.str.strip().str.lower()
     print("Columns after normalization:", df.columns)
-    print(df.columns)
+
     # Проверка наличия столбцов с "unnamed"
     unnamed_columns = [col for col in df.columns if 'unnamed' in col]
     if unnamed_columns:
         for unnamed_col in unnamed_columns:
-            # Переименовываем столбец 'unnamed' в более осмысленное имя, например 'статус'
             df.rename(columns={unnamed_col: 'статус'}, inplace=True)
         print(f"Renamed columns {unnamed_columns} to 'статус'.")
     else:
@@ -38,7 +114,7 @@ def process_excel_to_sqlite(file_path, base_path):
     # Проверка наличия столбца 'статус'
     if 'статус' not in df.columns:
         print("Столбец 'Статус' не найден в Excel. Используется значение по умолчанию.")
-        df['статус'] = None  # Если столбца 'статус' нет, добавляем с пустыми значениями
+        df['статус'] = None
 
     # Словарь для приведения столбцов из нижнего регистра к нужному виду
     columns_map = {
@@ -58,168 +134,86 @@ def process_excel_to_sqlite(file_path, base_path):
     # Обработка даты рождения
     df['Дата рождения'] = pd.to_datetime(df['Дата рождения'], dayfirst=True, errors='coerce').dt.strftime('%Y-%m-%d')
 
-    sphere_dict = {
-        "medical": [
-            "Врач-челюстно-лицевой хирург",
-            "Врач-офтальмолог",
-            "Врач-невролог",
-            "Врач-анестезиолог-реаниматолог",
-            "Врач-акушер-гинеколог",
-            "Врач-оториноларинголог",
-            "Врач-педиатр",
-            "Врач-методист",
-            "Врач-физиотерапевт",
-            "Врач-специалист",
-            "Врач-психиатр",
-            "Врач-сурдолог-оториноларинголог",
-            "Заведующий стоматологической поликлиникой, врач-стоматолог детский",
-            "Врач-ортодонт",
-            "Врач-стоматолог",
-            "Заведующий консультативно-диагностической поликлиникой№1, врач -педиатр",
-            "Заведующий отделением, врач-педиатр",
-            "Медицинская сестра палатная",
-            "Врач-травматолог-ортопед",
-            "Заведующий отделением, врач-невролог",
-            "Инструктор-методист по лечебной физкультуре",
-            "Врач-пластический хирург",
-            "Заведующий отделением, врач по лечебной физкультуре",
-            "Врач по спортивной медицине и лечебной физкультуре",
-            "Медицинская сестра",
-            "Медицинская сестра-анестезист",
-            "Медицинская сестра процедурной",
-            "Медицинская сестра палатная",
-            "Медицинская сестра по физиотерапии",
-            "Медицинская сестра диетическая",
-            "Медицинская сестра функциональной диагностики",
-            "Медицинская сестра операционная",
-            "Старшая медицинская сестра",
-            "Медицинский брат",
-            "Медицинский брат по массажу",
-            "Медицинский лабораторный техник",
-            "Логопед",
-            "Инструктор-методист по ЛФК",
-            "Инструктор методист",
-            "Клинический психолог",
-            "Санитарка",
-            "Массажист",
-            "Заместитель главного врача по лечебной работе",
-            "Помощник врача-эпидемиолога",
-            "Заведующий отделением, врач-офтальмолог",
-            "Заведующий отделением, врач-физиотерапевт",
-            "Заведующий отделением, врач-анестезиолог -реаниматолог",
-            "Заведующий отделением, врач функциональной диагностики",
-            "Заведующий отделением функциональной диагностики, врач функциональной диагностики",
-            "Старшая операционная  медицинская сестра",
-            "Главный врач",
-            "Заведующий отделением, врач-методист",
-            "Врач функциональной диагностики",
-            "Медицинская сестра по массажу",
-            "Врач-стоматолог-ортопед",
-            "Заведующий отделением, врач-анестезиолог -реаниматолог",
-            "Врач",
-            "Врач функциональной диагностики",
-            "Главная медицинская сестра",
-            "Врач-стажёр",
-            "Врач-стоматолог-детский",
-            "Врач-дерматовенеролог",
-            "Сурдопедагог",
-            "Медицинский психолог",
-            "Врач-эндокринолог",
-            "Врач-кардиолог",
-            "Врач-хирург",
-            "Врач-терапевт",
-            "Врач-инфекционист",
-            "Врач-генетик",
-            "Врач-диетолог",
-            "Врач-уролог",
-            "Врач-реаниматолог",
-            "Врач-аллерголог",
-            "Врач-гематолог"
-        ],
-        "foodService": [
-            "Кухонный рабочий",
-            "Повар",
-            "Буфетчик",
-            "Заведующий производством",
-            "Мойщик посуды",
-            "Технолог общественного питания",
-            "Консервщик",
-            "Пекарь",
-            "Кондитер",
-            "кух.рабочий"
-        ],
-        "utilityService": [
-            "Подсобный рабочий",
-            "Уборщик произ и служеб помещений",
-            "Уборщик производственных помещений",
-            "Уборщик производственных и служебных помещений",
-            "Гардеробщик",
-            "Вахтер",
-            "Дворник",
-            "Слесарь-сантехник",
-            "Кастелянша",
-            "Плотник",
-            "Кочегар",
-            "Машинист котельной (кочегар)",
-            "Заведующий хозяйством",
-            "Разнорабочий",
-            "Электромонтер по ремонту и обслуживанию",
-            "Маляр",
-            "Штукатур",
-            "Электрик",
-            "Столяр",
-            "Техник по обслуживанию зданий",
-            "Заведующий складом"
-            "Контролёр технического состояния"
+    # Загрузка данных из JSON
+    with open(json_path, 'r', encoding='utf-8') as file:
+        sphere_dict = json.load(file)
 
-        ],
-    }
+    # Преобразуем JSON в словарь для быстрого поиска
+    position_to_type = {}
+    for sphere, positions in sphere_dict.items():
+        for position in positions:
+            position_to_type[position.lower()] = sphere  # Приводим к нижнему регистру
+
 
     # Определение пола по отчеству
     def determine_gender(patronymic):
-        # Если отчество состоит из двух слов (например, "Камил оглы" или "Фирдоси кызы")
         if "оглы" in patronymic:
             return "m"
         elif "кызы" in patronymic:
             return "w"
-        # Если отчество заканчивается на "ич" (например, "Александрович")
         elif patronymic.endswith("ич"):
             return "m"
-        # Если отчество заканчивается на "на" (например, "Александровна")
         elif patronymic.endswith("на"):
             return "w"
-        return "Неизвестно"  # На всякий случай на случай некорректных данных
+        return "Неизвестно"
 
-    # Преобразуем все профессии в словаре в нижний регистр
-    sphere_dict_lower = {
-        sphere: [profession.lower() for profession in professions]
-        for sphere, professions in sphere_dict.items()
-    }
+    # Преобразуем столбец 'Штатная должность' в строки и заменяем NaN на пустую строку
+    df['Штатная должность'] = df['Штатная должность'].astype(str).replace('nan', '')
 
     # Функция для определения сферы по должности
     def determine_sphere(name):
-        name = name.lower()  # Приводим входное значение к нижнему регистру
-        for sphere, professions in sphere_dict_lower.items():
-            if name in professions:
-                return sphere
-        return "nonMedical"
+        if not name:  # Если строка пустая
+            return None
+        name = name.lower()  # Приводим к нижнему регистру
+        return position_to_type.get(name)  # Возвращаем тип из JSON или None, если должность не найдена
 
-    # Словарь для преобразования текстовых месяцев в числа
-    month_mapping = {
-        'январь': '01', 'февраль': '02', 'март': '03', 'апрель': '04',
-        'май': '05', 'июнь': '06', 'июль': '07', 'август': '08',
-        'сентябрь': '09', 'октябрь': '10', 'ноябрь': '11', 'декабрь': '12'
-    }
+    # Определение типа для каждой должности
+    df['Тип'] = df['Штатная должность'].apply(determine_sphere)
 
-    # Функция парсинга текстовых дат
-    def parse_custom_date(record):
-        for month, num in month_mapping.items():
-            if month in record.lower():
-                year_match = re.search(r'(\d{4})', record)
-                if year_match:
-                    return f"01.{num}.{year_match.group(1)}"
-        return None
+    # Сбор уникальных должностей из Excel
+    unique_positions = df['Штатная должность'].dropna().str.lower().unique()
 
+    # Поиск должностей, которых нет в JSON
+    missing_positions = [pos for pos in unique_positions if pos not in position_to_type]
+
+
+    # Если есть отсутствующие должности, вызываем диалоговое окно
+    if missing_positions:
+        # Приводим missing_positions к нижнему регистру и убираем дубликаты
+        missing_positions = list(set(pos.lower() for pos in missing_positions))
+
+        # Формируем dialog_data с данными из DataFrame
+        dialog_data = []
+        added_positions = set()  # Множество для отслеживания уже добавленных должностей
+
+        for _, row in df.iterrows():  # Перебираем строки DataFrame
+            position = row.get('Штатная должность', '').lower()  # Приводим должность к нижнему регистру
+
+            # Если должность есть в missing_positions и ещё не добавлена
+            if position in missing_positions and position not in added_positions:
+                dialog_data.append({
+                    'Фамилия': row.get('Фамилия', 'Неизвестно'),  # Если фамилия отсутствует, используем 'Неизвестно'
+                    'Имя': row.get('Имя', 'Неизвестно'),  # Если имя отсутствует, используем 'Неизвестно'
+                    'Отчество': row.get('Отчество', 'Неизвестно'),  # Если отчество отсутствует, используем 'Неизвестно'
+                    'Должность': position  # Используем должность в нижнем регистре
+                })
+                added_positions.add(position)  # Добавляем должность в множество, чтобы избежать дубликатов
+
+        # Проверка данных перед передачей в диалог
+        print(f"Dialog data: {dialog_data}")
+
+        # Создание и отображение диалога
+        dialog = PositionDialog(dialog_data, json_path)
+        if dialog.exec() == QDialog.Accepted:
+            # После закрытия диалога обновляем position_to_type
+            with open(json_path, 'r', encoding='utf-8') as file:
+                sphere_dict = json.load(file)
+                for sphere, positions in sphere_dict.items():
+                    for position in positions:
+                        position_to_type[position.lower()] = sphere
+
+    # Определение типа для каждой должности
+    df['Тип'] = df['Штатная должность'].apply(determine_sphere)
 
     # Подключение к базе данных SQLite
     try:
@@ -240,15 +234,15 @@ def process_excel_to_sqlite(file_path, base_path):
         cursor.execute("DELETE FROM indicatorAntiHBs")
         print("Deleted all records from immunization, worker, position, indicatorAntiHBs.")
 
-        cursor.execute("DELETE FROM sqlite_sequence WHERE name='immunization'")  # Для таблицы Вакцинация
-        cursor.execute("DELETE FROM sqlite_sequence WHERE name='worker'")  # Для таблицы Должность
-        cursor.execute("DELETE FROM sqlite_sequence WHERE name='indicatorAntiHBs'")  # Для таблицы Показатель_AntiHBs
-        cursor.execute("DELETE FROM sqlite_sequence WHERE name='position'")  # Для таблицы Показатель_AntiHBs
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name='immunization'")
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name='worker'")
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name='indicatorAntiHBs'")
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name='position'")
 
         print("Reset auto-increment counters for all tables.")
     except Exception as e:
         print(f"Error deleting data from tables: {e}")
-        conn.rollback()  # Откатить транзакцию в случае ошибки
+        conn.rollback()
         raise
 
     # Функция для преобразования NULL значений
@@ -268,9 +262,8 @@ def process_excel_to_sqlite(file_path, base_path):
 
     # Вставка или обновление данных в таблицу position
     for index, row in df.iterrows():
-        # Приведение значений к ожидаемым форматам
         name = normalize_value(row['Штатная должность']) if pd.notnull(row['Штатная должность']) else None
-        area_of_work = determine_sphere(name) if name else None
+        area_of_work = row['Тип']  # Тип из JSON или None
         division = normalize_value(row['Штатное подразделение']) if pd.notnull(row['Штатное подразделение']) else None
         short_title = normalize_value(row['Краткое название']) if pd.notnull(row['Краткое название']) else None
 
@@ -281,23 +274,21 @@ def process_excel_to_sqlite(file_path, base_path):
             # Проверка существования записи в таблице position
             cursor.execute("""
                 SELECT ID FROM position
-                WHERE name = ? AND division = ? AND shortTitle = ?
+                WHERE name_pos = ? AND division = ? AND shortTitle = ?
             """, (name, division, short_title))
             existing_record = cursor.fetchone()
 
             if existing_record:
-                # Если запись существует, обновляем при необходимости
                 cursor.execute("""
                     UPDATE position
                     SET areaOfWork = ?
-                    WHERE name = ? AND division = ? AND shortTitle = ?
+                    WHERE name_pos = ? AND division = ? AND shortTitle = ?
                 """, (area_of_work, name, division, short_title))
                 print(
                     f"Updated existing record: name={name}, division={division}, short_title={short_title}, area_of_work={area_of_work}")
             else:
-                # Если записи нет, вставляем новую
                 cursor.execute("""
-                    INSERT INTO position (name, areaOfWork, division, shortTitle)
+                    INSERT INTO position (name_pos, areaOfWork, division, shortTitle)
                     VALUES (?, ?, ?, ?)
                 """, (name, area_of_work, division, short_title))
                 print(
@@ -310,58 +301,55 @@ def process_excel_to_sqlite(file_path, base_path):
 
     # Словарь для приведения значений "Статус" к допустимым
     status_mapping = {
-        'осн': 'key',  # Пример: "осн" преобразуется в "key"
-        'врем': 'notKey',  # Если есть "врем", преобразуется в "notKey"
+        'осн': 'key',
+        'врем': 'notKey',
         'совм': 'notKey',
         'вне': 'notKey',
         'омн': 'notKey',
     }
 
     # Вставка или обновление данных в таблицу worker
-    id_counter = 1  # Счётчик для генерации ID
+    id_counter = 1
 
     for _, row in df.iterrows():
         try:
-            # Проверка наличия обязательных полей
             if pd.isna(row.get('Фамилия')) or pd.isna(row.get('Имя')) or pd.isna(row.get('Отчество')) or pd.isna(
                     row.get('Дата рождения')):
                 print(f"Skipping row due to NULL value in required fields: {row.to_dict()}")
                 continue
 
-            # Приведение значения "Статус" к допустимым
             status = row.get('Статус')
-            if status in status_mapping:
-                status = status_mapping[status]  # Преобразуем значение через словарь
-            elif status not in ['key', 'notKey']:
-                print(f"Invalid status value: {status} in row: {row.to_dict()}")
-                continue  # Пропускаем строки с некорректными значениями
+            if isinstance(status, str):
+                status = status.strip()
+                if status in status_mapping:
+                    status = status_mapping[status]
+                elif status not in ['key', 'notKey']:
+                    print(f"Invalid status value: {status} in row: {row.to_dict()}")
+                    continue
+            else:
+                status = None
 
-            # Генерация ID должности (если информация о должности есть)
             query = "SELECT ID FROM position WHERE 1=1"
             params = []
 
             if not pd.isna(row.get('Штатная должность')):
-                query += " AND name = ?"
-                params.append(
-                    row['Штатная должность'])  # Поле "Штатная должность" соответствует "name" в таблице position
+                query += " AND name_pos = ?"
+                params.append(row['Штатная должность'])
 
             if not pd.isna(row.get('Штатное подразделение')):
                 query += " AND division = ?"
-                params.append(row['Штатное подразделение'])  # Поле "Штатное подразделение" соответствует "division"
+                params.append(row['Штатное подразделение'])
 
             if not pd.isna(row.get('Краткое название')):
                 query += " AND shortTitle = ?"
-                params.append(row['Краткое название'])  # Поле "Краткое название" соответствует "shortTitle"
+                params.append(row['Краткое название'])
 
-            # Выполнение запроса для определения позиции
             cursor.execute(query, params)
             position = cursor.fetchone()
-            position_id = position[0] if position else None  # Получение ID должности или None, если запись не найдена
+            position_id = position[0] if position else None
 
-            # Определение пола
-            gender = determine_gender(row.get('Отчество', ''))  # Функция определяет пол на основе отчества
+            gender = determine_gender(row.get('Отчество', ''))
 
-            # Вставка или обновление данных сотрудника
             cursor.execute("""
                 INSERT INTO worker (ID, firstname, name, lastname, gender, dateOfBirth, status, position)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -374,18 +362,18 @@ def process_excel_to_sqlite(file_path, base_path):
                     status = excluded.status,
                     position = excluded.position
             """, (
-                id_counter,  # Генерация ID
-                row.get('Фамилия'),  # firstname
-                row.get('Имя'),  # name
-                row.get('Отчество'),  # lastname
-                gender,  # gender
-                row.get('Дата рождения'),  # dateOfBirth
-                status,  # status
-                position_id  # position (ID должности)
+                id_counter,
+                row.get('Фамилия'),
+                row.get('Имя'),
+                row.get('Отчество'),
+                gender,
+                row.get('Дата рождения'),
+                status,
+                position_id
             ))
 
             print(f"Inserted or updated: ID {id_counter}, {row.get('Фамилия')}, {row.get('Имя')}")
-            id_counter += 1  # Увеличение счётчика ID
+            id_counter += 1
 
         except sqlite3.IntegrityError as e:
             print(f"IntegrityError: {e}")
@@ -467,22 +455,27 @@ def process_excel_to_sqlite(file_path, base_path):
 
             annual_vaccinations = {'НКВИ', 'Шигеллвак', 'Грипп'}
 
-            date_pattern = r'\d{2}\.\d{2}\.\d{2,4}'  # Паттерн для обычных дат
+            date_pattern = r'^\d{2}[./]\d{2}[./]\d{2,4}$'  # Для форматов дд.мм.гггг и дд/мм/гггг
             month_year_pattern = r'\d{2}\.\d{4}'  # Паттерн для месяца и года
-            year_pattern = r'\d{4}'  # Паттерн для только года
+            year_pattern = r'\d{4}(г\.?)?'
             allowed_types = {'rv', 'v', 'rv1', 'v1', 'v2', 'v3'}
 
             def is_valid_date(date_str):
                 """Проверка на корректность даты и форматирование в YYYY-MM-DD"""
                 try:
-                    # Если строка слишком длинная, обрезаем до формата YYYY-MM-DD
-                    if len(date_str) > 10:
-                        date_str = date_str[:10]  # Убираем лишние символы, например, '-01-01'
+                    # Убираем лишние пробелы
+                    date_str = date_str.strip()
 
-                    # Пробуем преобразовать строку в дату
+                    # Обработка двухзначного года (например, 97 → 1997 или 02 → 2002)
+                    if re.match(r'\d{2}\.\d{2}\.\d{2}$', date_str):  # Формат dd.mm.yy
+                        day, month, year = date_str.split('.')
+                        year = f"19{year}" if int(year) > 30 else f"20{year}"  # До 2030 года считаем 20xx
+                        date_str = f"{day}.{month}.{year}"
+
+                    # Попытка преобразовать дату с указанием dayfirst=True
                     parsed_date = pd.to_datetime(date_str, dayfirst=True, errors='coerce')
                     if pd.isna(parsed_date):
-                        raise ValueError("Date parsing failed")
+                        raise ValueError(f"Date parsing failed for: {date_str}")
 
                     # Возвращаем дату в формате YYYY-MM-DD
                     return parsed_date.strftime('%Y-%m-%d')
@@ -513,9 +506,22 @@ def process_excel_to_sqlite(file_path, base_path):
                 if isinstance(data, pd.Timestamp):
                     return data.strftime('%Y-%m-%d')
                 if isinstance(data, str):
-                    # Убираем время, если оно присутствует
                     data = fix_excel_date_format(data)  # Убираем суффикс "-01-01" и время
+                    if '/' in data:  # Если дата записана через "/", меняем разделитель
+                        data = data.replace('/', '.')
                 return data
+
+            # Функция для определения типа RV
+            def normalize_rv_type(vaccine_type):
+                """
+                Преобразует типы RV с числами в общий тип RV, если число не равно 1.
+                """
+                match = re.match(r'(?i)(rv)(\d+)', vaccine_type)  # Ищем RV с числом
+                if match:
+                    base_type, number = match.groups()
+                    if number != "1":  # Если число не равно 1
+                        return base_type.lower()  # Преобразуем в RV
+                return vaccine_type.lower()  # Возвращаем исходный тип в верхнем регистре
 
             # Основной цикл обработки данных
             for vaccine, data in vaccinations.items():
@@ -537,25 +543,10 @@ def process_excel_to_sqlite(file_path, base_path):
                         # Убираем время из записи
                         record = remove_time_from_date(record)
 
-                        # Обработка строки без даты
-                        if re.search(r'отказ|не получено|антитела|переболел|положительные', record, re.IGNORECASE):
-                            last_date = '2001-01-01'
-                            last_type = 'ant'
-
                         # Если это тип прививки
-                        elif record.lower() in allowed_types:
-                            current_type = record.lower()
+                        if re.match(r'(?i)rv\d+|rv|v\d+|v', record):  # Поиск типа RV или V с числом
+                            current_type = normalize_rv_type(record)  # Нормализуем тип RV
                             continue
-
-                        # Обработка строки с датой и типом RV
-                        elif re.match(r'(rv|v|rv1|v1|v2|v3)(\d{2}\.\d{2}\.\d{4})', record, re.IGNORECASE):
-                            type_match = re.match(r'(rv|v|rv1|v1|v2|v3)', record, re.IGNORECASE)
-                            date_match = re.search(r'(\d{2}\.\d{2}\.\d{4})', record)
-                            if type_match and date_match:
-                                date_parsed = is_valid_date(date_match.group(1))
-                                if date_parsed:
-                                    last_valid_date = date_parsed
-                                    last_valid_type = type_match.group(1).lower()
 
                         # Если это дата
                         try:
@@ -567,13 +558,13 @@ def process_excel_to_sqlite(file_path, base_path):
                                 # Проверяем на корректность даты перед её обработкой
                                 date_parsed = is_valid_date(record)
                                 if date_parsed:
-                                    last_valid_date = date_parsed  # Обновляем последнюю валидную дату
-                                    last_valid_type = current_type  # Обновляем тип для последней валидной даты
+                                    last_valid_date = date_parsed
+                                    last_valid_type = current_type  # Используем текущий тип
                                     print(f"Parsed valid date: {last_valid_date}")
                                 else:
-                                    invalid_data_found = True  # Найдена некорректная дата
+                                    invalid_data_found = True
                                     print(f"Invalid date detected: {record}")
-                                    break  # Прерываем обработку, чтобы пропустить эту строку
+                                    break
 
                             # Если это месяц и год (например, "12.2000"), то добавляем только месяц и год
                             elif re.search(month_year_pattern, record):
@@ -583,17 +574,16 @@ def process_excel_to_sqlite(file_path, base_path):
                                 last_valid_type = current_type
                                 print(f"Parsed month/year date: {last_valid_date}")
 
-                            # Если это только год (например, "2000"), добавляем только год с месяцем и днем = 01
+                            # Если это только год с "г" или без него
                             elif re.search(year_pattern, record):
-                                # Убираем точку в конце, если она есть
-                                record = record.strip('.')
+                                record = record.strip('.').replace('г', '').strip()  # Убираем "г"
                                 date_parsed = f"{record}-01-01"
                                 last_valid_date = date_parsed
                                 last_valid_type = current_type
                                 print(f"Parsed year-only date: {last_valid_date}")
 
                             # Обработка строки типа "переболела 12.2000. Запись в ПС"
-                            elif re.search(r'переболела|переболел|антитела|полож|со слов|отказ|сертификат|данные',
+                            elif re.search(r'переболела|переболел|антитела|полож|со слов|отказ|сертификат|данные|ат',
                                            record, re.IGNORECASE):
                                 # Пытаемся найти дату в формате "день.месяц.год" или "месяц.год"
                                 date_match = re.search(r'(\d{2}\.\d{2}\.\d{4})', record)
@@ -998,8 +988,6 @@ def process_excel_to_sqlite(file_path, base_path):
         except Exception as e:
             print(f"Error processing row {index}: {e}")
 
-
-
     # Установим локаль для корректной обработки чисел с запятой
     locale.setlocale(locale.LC_NUMERIC, 'ru_RU.UTF-8')  # или используйте локаль вашей системы
 
@@ -1101,11 +1089,40 @@ def process_excel_to_sqlite(file_path, base_path):
     conn.commit()
     conn.close()
 
-# Пример вызова функции для привязки к кнопке
+    # Обновление таблицы в интерфейсе, если передан tableWidget
+    # Обновление таблицы в интерфейсе, если передан tableWidget
+    if tableWidget:
+        tableWidget.setRowCount(len(df))
+        tableWidget.setColumnCount(7)
+        tableWidget.setHorizontalHeaderLabels(
+            ["Фамилия", "Имя", "Отчество", "Должность", "Подразделение", "Краткое название", "Статус"]
+        )
+
+        for i, row in df.iterrows():
+            tableWidget.setItem(i, 0, QTableWidgetItem(str(row['Фамилия'])))
+            tableWidget.setItem(i, 1, QTableWidgetItem(str(row['Имя'])))
+            tableWidget.setItem(i, 2, QTableWidgetItem(str(row['Отчество'])))
+            tableWidget.setItem(i, 3, QTableWidgetItem(str(row['Штатная должность'])))
+            tableWidget.setItem(i, 4, QTableWidgetItem(str(row['Штатное подразделение'])))
+            tableWidget.setItem(i, 5, QTableWidgetItem(str(row['Краткое название'])))
+            tableWidget.setItem(i, 6, QTableWidgetItem(str(row['Статус'])))
+
+
+# Пример использования
 if __name__ == "__main__":
-    file_path = r'C:\Users\User\PycharmProjects\pdf_generation\Копия_Список_сотрудников_для_планирования_вакцинации_с_указанием.xlsx'
-    base_path = r'C:\Users\User\PycharmProjects\pdf_generation\database.db'
-    process_excel_to_sqlite(file_path, base_path)
+    import sys
+
+    app = QApplication(sys.argv)
+    file_path = r'C:\Users\User\PycharmProjects\pdf_generation\Копия_Список_сотрудников_для_планирования_вакцинации_с_указанием1.xlsx'
+    base_path = r'C:\Users\User\PycharmProjects\PDF_gen3\database.db'
+
+    # Пример вызова функции с tableWidget
+    tableWidget = QTableWidget()  # Создаем таблицу для примера
+    process_excel_to_sqlite(file_path, base_path, tableWidget)
+
+    # Отображение таблицы (для примера)
+    tableWidget.show()
+    sys.exit(app.exec())
 
 def print_errors():
     if error_log:

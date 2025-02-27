@@ -17,10 +17,10 @@ class DataContainer:
             self.rows[row][col] = value
             #print("Updated Data:", self.rows)
 
-    def add_row(self, index):
+    def add_row(self):
         """Добавляет новую пустую строку"""
         new_row = ["", "", ""]  # Пустая строка по умолчанию
-        self.rows.insert(index, new_row)
+        self.rows.append(new_row)
         #print("Added Row:", self.rows)
 
     def remove_row(self, index):
@@ -36,7 +36,6 @@ class DataContainer:
         persInf = ['name', 'firstname', 'lastname', 'dateOfBirth', 'gender', 'namePos', 'division']
         for inst in strPersInfo:
             self.pers_info[int(inst[0])] =  {i: inst[n+1] for n, i in enumerate(persInf)}
-
 
 
 class DataController:
@@ -65,7 +64,7 @@ class DataController:
         self.table_widget.blockSignals(False)  # Разблокируем сигналы
 
     def update_data_container(self, item):
-        """Обновляет данные в DataContainer при редактировании ячейки"""
+        """Обновляет данные в DataContainer при редактировании ячейки .itemChanged.connect()"""
         row = item.row()
         col = item.column()
         new_value = item.text()

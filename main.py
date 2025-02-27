@@ -266,8 +266,7 @@ class MainWindow(QMainWindow):
             self.ui.tableWidget.insertRow(row_position)    # Вставляем новую строку
 
         if sender == self.ui.addLineButton_2:
-            row_position = self.ui.tableWidget_2.rowCount()
-            self.ui.tableWidget_2.insertRow(row_position)
+                self.dataController2.add_row()
 
 
     def delete_line_table(self):
@@ -279,9 +278,7 @@ class MainWindow(QMainWindow):
                 self.ui.tableWidget.removeRow(current_row)
 
         if sender == self.ui.deleteLineButton_2:
-            current_row = self.ui.tableWidget_2.currentRow()
-            if current_row != -1:
-                self.ui.tableWidget_2.removeRow(current_row)
+            self.dataController2.remove_row()
 
     def toggle_button_state(self, text):
         '''блокировка кнопок при пустом элементе списка анйденных людей'''
@@ -309,6 +306,10 @@ class MainWindow(QMainWindow):
                 self.ui.addLineButton_2.setEnabled(True)
                 self.ui.deleteLineButton_2.setEnabled(True)
             else:
+                self.ui.personInfoTable_2.setRowCount(0) # удаляем строки обоих таблиц
+                self.dataContainer2.rows = []
+                self.dataController2.load_data_to_table()
+
                 self.ui.addLineButton_2.setEnabled(False)
                 self.ui.deleteLineButton_2.setEnabled(False)
 
