@@ -34,9 +34,8 @@ class MainWindow(QMainWindow):
 
         self.ui.tableWidget.setEditTriggers(QAbstractItemView.AllEditTriggers)  # Установка редактируемости всех ячеек таблицы
 
-        self.ui.addLineButton.setEnabled(False) # изначально заблокировано
+        self.ui.change.setEnabled(False) # изначально заблокировано
         self.ui.addLineButton_2.setEnabled(False)
-        self.ui.deleteLineButton.setEnabled(False)
         self.ui.deleteLineButton_2.setEnabled(False)
         self.ui.findPatients.currentTextChanged.connect(self.toggle_button_state) # сигнал изменения выбранного текста
         self.ui.findPatients_2.currentTextChanged.connect(self.toggle_button_state)
@@ -71,8 +70,7 @@ class MainWindow(QMainWindow):
 
     def events(self):
 
-        self.ui.addLineButton.clicked.connect(self.add_line_table)
-        self.ui.deleteLineButton.clicked.connect(self.delete_line_table)
+        self.ui.change.clicked.connect(self.change_tab)
         self.ui.addLineButton_2.clicked.connect(self.add_line_table)
         self.ui.deleteLineButton_2.clicked.connect(self.delete_line_table)
 
@@ -93,77 +91,31 @@ class MainWindow(QMainWindow):
 
     def clic_generate(self, tableWidget, personInfoTable, findPatients):
         ''' Генерация pdf '''
-
+        currentID = self.dataContainer2.currentId
         data = {'date': []}
-        #Считать данные из QTableWidget
 
-        rows = tableWidget.rowCount()
-        cols = tableWidget.columnCount()
-        table_data = []  # Список для хранения данных
-        for row in range(rows):
-            row_data = []
-            for col in range(cols):
-                #print(row_data)
-                item = tableWidget.item(row, col)
-                # Проверяем, что ячейка не пустая
-                if item is not None:
-                    if col == 1:
-                        row_data.append(rename_vaccine_R(item.text())) #['', '', '']
-                    elif col == 0:
-                        dat_lst = item.text().split('-')
-                        row_data.append(str(f"{dat_lst[2]}-{dat_lst[1]}-{dat_lst[0]}"))
-                    else:
-                        row_data.append(item.text())
-                else:
-                    row_data.append("")  # Если пустая, добавляем пустую строку
-            table_data.append(row_data)  #[[''''], [''''], [''''], ]
+        table_data = self.dataContainer2.rows  # Список для хранения данных
+        for n, row in enumerate(table_data):
+            dat = row[0].split('-')
+            table_data[n][0] = str(f"{dat[2]}-{dat[1]}-{dat[0]}")
+            table_data[n][1] = rename_vaccine_R(row[1])
 
         print(f"Данные таблицы {table_data}")
 
-        rows = personInfoTable.rowCount()
-        cols = personInfoTable.columnCount()
-        table_data_pers = []  # Список для хранения данных
-        for row in range(rows):
-            row_data = []
-            for col in range(cols):
-                # Получаем элемент таблицы
-                item = personInfoTable.item(row, col)
-                # Проверяем, что ячейка не пустая
-                if item is not None:
-                    row_data.append(item.text())
-                else:
-                    row_data.append("")  # Если пустая, добавляем пустую строку
-            table_data_pers.append(row_data)
+        data['name'] = (self.dataContainer2.pers_info[currentID]['name'] + ' ' +
+                        self.dataContainer2.pers_info[currentID]['lastname'] + ' ' +
+                        self.dataContainer2.pers_info[currentID]['firstname'])
 
-
-        select_text = findPatients.currentText()
-        lst_select_text = select_text.split(' ') # разбиваем для выделения ID
-        if len(lst_select_text[0]) != 0:
-            id = int(lst_select_text[1])
-
-
-        conn = sqlite3.connect('database.db')  # выделяем гендер
-        cursor = conn.cursor()
-        cursor.execute(
-            f"SELECT W.gender FROM worker as W WHERE W.ID = {id};")
-        rows = cursor.fetchall()
-        pers_info = rows
-        gender = pers_info[0][0]
-
-        # Печатаем данные таблицы
-        # print(table_data)
-        # print(table_data_pers)
-
-        data['name'] = table_data_pers[0][0] + ' ' + table_data_pers[0][1] + ' ' +  table_data_pers[0][2]
         for dat in table_data:
             data['date'].append(dat)
-        norm_dat = mont_replace(data['date'])
+
+        norm_dat = mont_replace(data['date']) # ['2024-12-23'] -> ['Ноябрь 2024']
         data['date'] = norm_dat[:]
-        data['id'] = id
-        data['gender'] = gender
+        data['id'] = self.dataContainer2.currentId
+        data['gender'] = self.dataContainer2.pers_info[currentID]['gender']
         print(f"перед генерацией {data}")
 
-        #print(data)
+        print(data)
         #print(norm_dat)
 
         try:
@@ -313,6 +265,8 @@ class MainWindow(QMainWindow):
                 self.ui.addLineButton_2.setEnabled(False)
                 self.ui.deleteLineButton_2.setEnabled(False)
 
+    def change_tab(self):
+        pass
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

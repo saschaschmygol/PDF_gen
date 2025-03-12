@@ -36,11 +36,6 @@ class Ui_MainWindow(object):
         self.home.setObjectName(u"home")
         self.verticalLayout = QVBoxLayout(self.home)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.loadTable = QPushButton(self.home)
-        self.loadTable.setObjectName(u"loadTable")
-
-        self.verticalLayout.addWidget(self.loadTable)
-
         self.messagesHome = QScrollArea(self.home)
         self.messagesHome.setObjectName(u"messagesHome")
         self.messagesHome.setWidgetResizable(True)
@@ -50,6 +45,11 @@ class Ui_MainWindow(object):
         self.messagesHome.setWidget(self.scrollAreaWidgetContents)
 
         self.verticalLayout.addWidget(self.messagesHome)
+
+        self.loadTable = QPushButton(self.home)
+        self.loadTable.setObjectName(u"loadTable")
+
+        self.verticalLayout.addWidget(self.loadTable)
 
         self.tabWidget.addTab(self.home, "")
         self.database = QWidget()
@@ -208,15 +208,10 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addWidget(self.tableWidget)
 
-        self.addLineButton = QPushButton(self.widget_2)
-        self.addLineButton.setObjectName(u"addLineButton")
+        self.change = QPushButton(self.widget_2)
+        self.change.setObjectName(u"change")
 
-        self.verticalLayout_3.addWidget(self.addLineButton)
-
-        self.deleteLineButton = QPushButton(self.widget_2)
-        self.deleteLineButton.setObjectName(u"deleteLineButton")
-
-        self.verticalLayout_3.addWidget(self.deleteLineButton)
+        self.verticalLayout_3.addWidget(self.change)
 
 
         self.verticalLayout_2.addWidget(self.widget_2)
@@ -362,7 +357,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -399,8 +394,7 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem6.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043d\u0444\u0435\u043a\u0446\u0438\u043e\u043d\u043d\u043e\u0435 \u0437\u0430\u0431\u043e\u043b\u0435\u0432\u0430\u043d\u0438\u0435", None));
         ___qtablewidgetitem7 = self.tableWidget.horizontalHeaderItem(2)
         ___qtablewidgetitem7.setText(QCoreApplication.translate("MainWindow", u"\u0422\u0438\u043f", None));
-        self.addLineButton.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0441\u0442\u0440\u043e\u043a\u0443", None))
-        self.deleteLineButton.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0441\u0442\u0440\u043e\u043a\u0443", None))
+        self.change.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.database), QCoreApplication.translate("MainWindow", u"database.sqlite", None))
         self.nameLabel_2.setText(QCoreApplication.translate("MainWindow", u"\u0418\u043c\u044f", None))
         self.searchPatientTextField_2.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0438\u043c\u044f \u043f\u0430\u0446\u0438\u0435\u043d\u0442\u0430", None))

@@ -18,20 +18,13 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="home">
        <attribute name="title">
         <string>Главная</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <widget class="QPushButton" name="loadTable">
-          <property name="text">
-           <string>Загрузить таблицу</string>
-          </property>
-         </widget>
-        </item>
         <item>
          <widget class="QScrollArea" name="messagesHome">
           <property name="widgetResizable">
@@ -47,6 +40,13 @@
             </rect>
            </property>
           </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="loadTable">
+          <property name="text">
+           <string>Загрузить таблицу</string>
+          </property>
          </widget>
         </item>
        </layout>
@@ -370,16 +370,9 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="addLineButton">
+            <widget class="QPushButton" name="change">
              <property name="text">
-              <string>Добавить строку</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="deleteLineButton">
-             <property name="text">
-              <string>Удалить строку</string>
+              <string>Редактировать</string>
              </property>
             </widget>
            </item>
